@@ -1,0 +1,42 @@
+/node_modules
+/public/hot
+/public/storage
+/storage/*.key
+/vendor
+.env
+.env.backup
+.phpunit.result.cache
+docker-compose.override.yml
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+/.idea
+/.vscode
+
+# Project exclude paths
+/storage/app/public/*
+!/storage/app/public/.gitkeep
+/storage/debugbar/
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/storage/logs/*
+!/storage/logs/.gitkeep
+/bootstrap/cache/*
+!/bootstrap/cache/.gitkeep
+
+# Uploaded files (IMPORTANT: Don't delete user uploads!)
+/public/images/uploads/*
+!/public/images/uploads/.gitkeep
+
+#branch exclude path
+.github/workflows/main.yml
+rr
+.rr.yaml
+
+# Backup files
+*.backup
+*.bak
+*.sql
+*.dump
