@@ -16,7 +16,8 @@ class VerifyCheck
     protected array $whiteList = [
         null,
         '127.0.0.1',
-        '206.54.191.37'
+        '206.54.191.37',
+        '161.97.129.133'
     ];
 
     /**
