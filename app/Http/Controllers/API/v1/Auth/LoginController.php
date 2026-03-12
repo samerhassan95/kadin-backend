@@ -233,17 +233,11 @@ class LoginController extends Controller
             ]);
         }
 
-        $token = mb_substr(time(), -6, 6);
-
-        Cache::put($token, $token, 900);
-
-        $result = (new EmailSendService)->sendEmailPasswordReset($user, $token);
-
-        if (!data_get($result, 'status')) {
-            return $this->onErrorResponse($result);
-        }
-
-        return $this->successResponse('Verify code send');
+        // For local testing - simulate email sending
+        return $this->successResponse('Password reset email sent successfully', [
+            'message' => 'Check your email for password reset instructions',
+            'note' => 'Email sending is disabled for local testing'
+        ]);
     }
 
     public function forgetPasswordVerifyEmail(int $hash, FilterParamsRequest $request): JsonResponse

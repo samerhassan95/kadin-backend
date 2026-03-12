@@ -76,7 +76,12 @@ Route::group(['prefix' => 'v1', 'middleware' => ['block.ip']], function () {
         Route::get('project/version',               [Rest\SettingController::class, 'projectVersion']);
         Route::get('timezone',                      [Rest\SettingController::class, 'timeZone']);
         Route::get('translations/paginate',         [Rest\SettingController::class, 'translationsPaginate']);
+        
+        // Original routes (restored)
         Route::get('settings',                      [Rest\SettingController::class, 'settingsInfo']);
+        Route::get('languages',                     [Rest\SettingController::class, 'languages']);
+        Route::get('currencies',                    [Rest\SettingController::class, 'currencies']);
+        
         Route::get('referral',                      [Rest\SettingController::class, 'referral']);
         Route::get('system/information',            [Rest\SettingController::class, 'systemInformation']);
         Route::get('stat',                          [Rest\SettingController::class, 'stat']);

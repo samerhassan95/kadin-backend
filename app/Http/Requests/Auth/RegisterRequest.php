@@ -15,17 +15,21 @@ class RegisterRequest extends BaseRequest
     public function rules(): array
 	{
 		return [
-            'phone'     => [
+            'phone'                 => [
+                'nullable',
                 'numeric',
                 Rule::unique('users', 'phone')->whereNotNull('phone_verified_at')
             ],
-            'password'  => 'string',
-            'email'     => [
+            'password'              => 'nullable|string|min:6',
+            'password_confirmation' => 'nullable|string|same:password',
+            'email'                 => [
+                'nullable',
                 'email',
                 Rule::unique('users', 'email')->whereNotNull('email_verified_at')
             ],
-            'firstname' => 'string|min:2|max:100',
-            'referral'  => 'string|exists:users,my_referral|max:255',
+            'firstname'             => 'nullable|string|min:2|max:100',
+            'lastname'              => 'nullable|string|min:2|max:100',
+            'referral'              => 'nullable|string|exists:users,my_referral|max:255',
 		];
 	}
 }

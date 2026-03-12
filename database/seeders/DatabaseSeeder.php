@@ -32,6 +32,11 @@ class DatabaseSeeder extends Seeder
         $this->call(SmsGatewaySeeder::class);
         $this->call(UnitSeeder::class);
         $this->call(UserSeeder::class);
+        
+        // Add local test data for development
+        if (app()->environment() == 'local') {
+            $this->call(LocalTestSeeder::class);
+        }
 //        $this->call(RegionSeeder::class);
 
 //        if (app()->environment() == 'local') {
