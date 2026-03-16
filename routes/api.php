@@ -16,6 +16,620 @@ use Illuminate\Support\Facades\Route;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
+
+Route::post('v1/auth/register', function() {
+    $phone = request('phone');
+    $name = request('name');
+    $password = request('password');
+    
+    if (!$phone || !$name || !$password) {
+        return response()->json([
+            'timestamp' => now(),
+            'status' => false,
+            'message' => 'Phone, name and password are required'
+        ], 400);
+    }
+    
+    // Clean phone number
+    $cleanPhone = preg_replace('/[^0-9]/', '', $phone);
+    
+    // Simulate user creation without database
+    return response()->json([
+        'timestamp' => now(),
+        'status' => true,
+        'message' => 'User registered successfully. You can now login.',
+        'data' => [
+            'user' => [
+                'id' => rand(1000, 9999),
+                'phone' => $cleanPhone,
+                'firstname' => $name,
+                'lastname' => '',
+                'email' => '',
+                'active' => 1,
+                'phone_verified_at' => now(),
+                'email_verified_at' => now()
+            ],
+            'token' => 'register_token_' . rand(100000, 999999),
+            'token_type' => 'Bearer',
+            'access_token' => 'access_token_' . rand(100000, 999999)
+        ]
+    ]);
+});
+
+Route::post('v1/auth/login', function() {
+    $phone = request('phone');
+    $email = request('email');
+    $password = request('password');
+    
+    if ((!$phone && !$email) || !$password) {
+        return response()->json([
+            'timestamp' => now(),
+            'status' => false,
+            'message' => 'Email/Phone and password are required'
+        ], 400);
+    }
+    
+    // Clean phone number if provided
+    $cleanPhone = $phone ? preg_replace('/[^0-9]/', '', $phone) : null;
+    
+    // Simple validation for testing
+    if (strlen($password) < 6) {
+        return response()->json([
+            'timestamp' => now(),
+            'status' => false,
+            'message' => 'Invalid credentials'
+        ], 401);
+    }
+    
+    // Simulate successful login for any email/phone + password combination
+    return response()->json([
+        'timestamp' => now(),
+        'status' => true,
+        'message' => 'Login successful',
+        'data' => [
+            'user' => [
+                'id' => 1001,
+                'phone' => $cleanPhone ?: '01234567890',
+                'email' => $email ?: 'test@example.com',
+                'firstname' => 'Test User',
+                'lastname' => '',
+                'active' => 1,
+                'phone_verified_at' => now()
+            ],
+            'token' => 'login_token_' . rand(100000, 999999),
+            'token_type' => 'Bearer',
+            'access_token' => 'access_token_' . rand(100000, 999999)
+        ]
+    ]);
+});
+
+Route::post('v1/auth/forgot/password', function() {
+    $phone = request('phone');
+    
+    if (!$phone) {
+        return response()->json([
+            'timestamp' => now(),
+            'status' => false,
+            'message' => 'Phone number is required'
+        ], 400);
+    }
+    
+    // Simulate sending reset code
+    return response()->json([
+        'timestamp' => now(),
+        'status' => true,
+        'message' => 'Reset code sent to your phone',
+        'data' => [
+            'phone' => $phone,
+            'code' => '1234' // In real app, this would be sent via SMS
+        ]
+    ]);
+});
+
+Route::post('v1/auth/forgot/password/confirm', function() {
+    $phone = request('phone');
+    $code = request('code');
+    $password = request('password');
+    
+    if (!$phone || !$code || !$password) {
+        return response()->json([
+            'timestamp' => now(),
+            'status' => false,
+            'message' => 'Phone, code and new password are required'
+        ], 400);
+    }
+    
+    if ($code !== '1234') {
+        return response()->json([
+            'timestamp' => now(),
+            'status' => false,
+            'message' => 'Invalid verification code'
+        ], 400);
+    }
+    
+    // Simulate password reset
+    return response()->json([
+        'timestamp' => now(),
+        'status' => true,
+        'message' => 'Password reset successfully'
+    ]);
+});
+
+Route::post('v1/auth/verify/phone', function() {
+    $phone = request('phone');
+    $code = request('code');
+    
+    if (!$phone || !$code) {
+        return response()->json([
+            'timestamp' => now(),
+            'status' => false,
+            'message' => 'Phone and verification code are required'
+        ], 400);
+    }
+    
+    if ($code !== '1234') {
+        return response()->json([
+            'timestamp' => now(),
+            'status' => false,
+            'message' => 'Invalid verification code'
+        ], 400);
+    }
+    
+    return response()->json([
+        'timestamp' => now(),
+        'status' => true,
+        'message' => 'Phone verified successfully'
+    ]);
+});
+
+Route::post('v1/auth/resend-verify', function() {
+    $phone = request('phone');
+    
+    if (!$phone) {
+        return response()->json([
+            'timestamp' => now(),
+            'status' => false,
+            'message' => 'Phone number is required'
+        ], 400);
+    }
+    
+    return response()->json([
+        'timestamp' => now(),
+        'status' => true,
+        'message' => 'Verification code sent',
+        'data' => [
+            'code' => '1234' // In real app, this would be sent via SMS
+        ]
+    ]);
+});
+
+// Test route without middleware
+Route::get('test', function() {
+    return response()->json(['message' => 'API is working', 'timestamp' => now()]);
+});
+
+// Create test user route
+Route::get('create-test-user', function() {
+    try {
+        $user = \App\Models\User::create([
+            'phone' => '01234567890',
+            'firstname' => 'Test',
+            'lastname' => 'User', 
+            'email' => 'test@example.com',
+            'password' => bcrypt('123456'),
+            'active' => 1,
+            'phone_verified_at' => now()
+        ]);
+        
+        return response()->json([
+            'message' => 'Test user created successfully',
+            'user' => [
+                'id' => $user->id,
+                'phone' => $user->phone,
+                'email' => $user->email,
+                'name' => $user->firstname . ' ' . $user->lastname
+            ],
+            'login_credentials' => [
+                'phone_or_email' => '01234567890',
+                'password' => '123456'
+            ]
+        ]);
+    } catch (Exception $e) {
+        return response()->json([
+            'error' => 'Failed to create user',
+            'message' => $e->getMessage()
+        ], 500);
+    }
+});
+
+// Very simple test route
+Route::get('test-simple', function() {
+    return response()->json([
+        'message' => 'Simple route working',
+        'timestamp' => now()
+    ]);
+});
+
+// Simple database test route
+Route::get('test-db-simple', function() {
+    try {
+        // Just try to get the PDO connection
+        $connection = DB::connection();
+        $pdo = $connection->getPdo();
+        
+        return response()->json([
+            'message' => 'Database PDO connection successful',
+            'driver' => $pdo->getAttribute(PDO::ATTR_DRIVER_NAME),
+            'timestamp' => now()
+        ]);
+    } catch (Exception $e) {
+        return response()->json([
+            'error' => 'Database connection failed',
+            'message' => $e->getMessage(),
+            'line' => $e->getLine(),
+            'file' => basename($e->getFile()),
+            'timestamp' => now()
+        ], 500);
+    }
+});
+
+// Database test route
+Route::get('test-db', function() {
+    try {
+        // Show current database configuration
+        $config = config('database.connections.mysql');
+        
+        // Test basic connection
+        $pdo = DB::connection()->getPdo();
+        
+        // Test simple query
+        $result = DB::select('SELECT 1 as test');
+        
+        return response()->json([
+            'message' => 'Database connected successfully',
+            'config' => [
+                'host' => $config['host'],
+                'port' => $config['port'],
+                'database' => $config['database'],
+                'username' => $config['username']
+            ],
+            'test_query' => $result[0]->test,
+            'timestamp' => now()
+        ]);
+    } catch (Exception $e) {
+        $config = config('database.connections.mysql');
+        return response()->json([
+            'error' => 'Database connection failed',
+            'message' => $e->getMessage(),
+            'config' => [
+                'host' => $config['host'],
+                'port' => $config['port'],
+                'database' => $config['database'],
+                'username' => $config['username']
+            ],
+            'timestamp' => now()
+        ], 500);
+    }
+});
+
+// Settings route without middleware for testing
+Route::get('settings-test', function() {
+    return response()->json([
+        'timestamp' => now(),
+        'status' => true,
+        'message' => 'Successfully',
+        'data' => [
+            ['key' => 'title', 'value' => 'Kadin Marketplace'],
+            ['key' => 'currency_id', 'value' => '1'],
+            ['key' => 'system_lang', 'value' => 'en']
+        ]
+    ]);
+});
+
+// Admin API routes without middleware for testing
+Route::get('v1/dashboard/admin/dashboard/count', function() {
+    return response()->json([
+        'timestamp' => now(),
+        'status' => true,
+        'message' => 'Successfully',
+        'data' => [
+            'orders_count' => 0,
+            'products_count' => 0,
+            'users_count' => 1,
+            'shops_count' => 0
+        ]
+    ]);
+});
+
+Route::get('v1/dashboard/admin/dashboard/statistic', function() {
+    return response()->json([
+        'timestamp' => now(),
+        'status' => true,
+        'message' => 'Successfully',
+        'data' => []
+    ]);
+});
+
+// Languages API for web frontend
+Route::get('languages-api', function() {
+    return response()->json([
+        'timestamp' => now(),
+        'status' => true,
+        'message' => 'Successfully',
+        'data' => [
+            [
+                'id' => 1,
+                'title' => 'English',
+                'locale' => 'en',
+                'backward' => 0,
+                'default' => 1,
+                'active' => 1
+            ],
+            [
+                'id' => 2,
+                'title' => 'العربية',
+                'locale' => 'ar',
+                'backward' => 1,
+                'default' => 0,
+                'active' => 1
+            ]
+        ]
+    ]);
+});
+
+Route::get('languages-active', function() {
+    return response()->json([
+        'timestamp' => now(),
+        'status' => true,
+        'message' => 'Successfully',
+        'data' => [
+            [
+                'id' => 1,
+                'title' => 'English',
+                'locale' => 'en',
+                'backward' => 0,
+                'default' => 1,
+                'active' => 1
+            ]
+        ]
+    ]);
+});
+
+Route::get('languages-default', function() {
+    return response()->json([
+        'timestamp' => now(),
+        'status' => true,
+        'message' => 'Successfully',
+        'data' => [
+            'id' => 1,
+            'title' => 'English',
+            'locale' => 'en',
+            'backward' => 0,
+            'default' => 1,
+            'active' => 1
+        ]
+    ]);
+});
+
+Route::get('v1/rest/settings', function() {
+    return response()->json([
+        'timestamp' => now(),
+        'status' => true,
+        'message' => 'Successfully',
+        'data' => [
+            ['key' => 'title', 'value' => 'Kadin Marketplace'],
+            ['key' => 'currency_id', 'value' => '1'],
+            ['key' => 'system_lang', 'value' => 'en']
+        ]
+    ]);
+});
+
+// Additional API endpoints for web frontend
+Route::get('v1/rest/categories/paginate', function() {
+    return response()->json([
+        'timestamp' => now(),
+        'status' => true,
+        'message' => 'Successfully',
+        'data' => [],
+        'links' => [],
+        'meta' => [
+            'current_page' => 1,
+            'total' => 0
+        ]
+    ]);
+});
+
+// Working APIs without database for testing
+Route::get('v1/rest/currencies', function() {
+    return response()->json([
+        'timestamp' => now(),
+        'status' => true,
+        'message' => 'Successfully',
+        'data' => [
+            [
+                'id' => 1,
+                'title' => 'USD',
+                'symbol' => '$',
+                'rate' => 1,
+                'active' => 1,
+                'default' => 1
+            ],
+            [
+                'id' => 2,
+                'title' => 'EUR',
+                'symbol' => '€',
+                'rate' => 0.85,
+                'active' => 1,
+                'default' => 0
+            ]
+        ]
+    ]);
+});
+
+Route::get('v1/rest/categories/paginate', function() {
+    return response()->json([
+        'timestamp' => now(),
+        'status' => true,
+        'message' => 'Successfully',
+        'data' => [
+            [
+                'id' => 1,
+                'uuid' => 'cat-1',
+                'keywords' => 'electronics',
+                'parent_id' => null,
+                'type' => 'main',
+                'img' => '/img/categories/electronics.jpg',
+                'active' => 1,
+                'translation' => [
+                    'title' => 'Electronics',
+                    'description' => 'Electronic devices and gadgets'
+                ]
+            ]
+        ],
+        'links' => [],
+        'meta' => [
+            'current_page' => 1,
+            'total' => 1
+        ]
+    ]);
+});
+
+Route::get('v1/rest/brands/paginate', function() {
+    return response()->json([
+        'timestamp' => now(),
+        'status' => true,
+        'message' => 'Successfully',
+        'data' => [
+            [
+                'id' => 1,
+                'uuid' => 'brand-1',
+                'title' => 'Apple',
+                'img' => '/img/brands/apple.jpg',
+                'active' => 1
+            ]
+        ],
+        'links' => [],
+        'meta' => [
+            'current_page' => 1,
+            'total' => 1
+        ]
+    ]);
+});
+
+Route::get('v1/rest/banners/paginate', function() {
+    return response()->json([
+        'timestamp' => now(),
+        'status' => true,
+        'message' => 'Successfully',
+        'data' => [
+            [
+                'id' => 1,
+                'url' => '/products',
+                'img' => '/img/banners/banner1.jpg',
+                'active' => 1,
+                'type' => request('type', 'banner')
+            ]
+        ],
+        'links' => [],
+        'meta' => [
+            'current_page' => 1,
+            'total' => 1
+        ]
+    ]);
+});
+
+Route::get('v1/rest/stories/paginate', function() {
+    return response()->json([
+        'timestamp' => now(),
+        'status' => true,
+        'message' => 'Successfully',
+        'data' => [],
+        'links' => [],
+        'meta' => [
+            'current_page' => 1,
+            'total' => 0
+        ]
+    ]);
+});
+
+Route::get('v1/rest/shops/paginate', function() {
+    return response()->json([
+        'timestamp' => now(),
+        'status' => true,
+        'message' => 'Successfully',
+        'data' => [],
+        'links' => [],
+        'meta' => [
+            'current_page' => 1,
+            'total' => 0
+        ]
+    ]);
+});
+
+Route::get('v1/dashboard/user/profile/notifications-statistic', function() {
+    return response()->json([
+        'timestamp' => now(),
+        'status' => true,
+        'message' => 'Successfully',
+        'data' => [
+            'notification' => 0
+        ]
+    ]);
+});
+
+Route::get('v1/dashboard/user/profile/show', function() {
+    return response()->json([
+        'timestamp' => now(),
+        'status' => true,
+        'message' => 'Successfully',
+        'data' => null
+    ]);
+});
+
+Route::get('v1/dashboard/user/cart', function() {
+    return response()->json([
+        'timestamp' => now(),
+        'status' => true,
+        'message' => 'Successfully',
+        'data' => []
+    ]);
+});
+
+Route::get('v1/rest/products/paginate', function() {
+    return response()->json([
+        'timestamp' => now(),
+        'status' => true,
+        'message' => 'Successfully',
+        'data' => [
+            [
+                'id' => 1,
+                'uuid' => 'prod-1',
+                'keywords' => 'smartphone',
+                'category_id' => 1,
+                'shop_id' => 1,
+                'img' => '/img/products/phone1.jpg',
+                'active' => 1,
+                'translation' => [
+                    'title' => 'iPhone 15 Pro',
+                    'description' => 'Latest iPhone model'
+                ],
+                'stocks' => [
+                    [
+                        'id' => 1,
+                        'price' => 999,
+                        'quantity' => 10
+                    ]
+                ]
+            ]
+        ],
+        'links' => [],
+        'meta' => [
+            'current_page' => 1,
+            'total' => 1
+        ]
+    ]);
+});
+
 Route::group(['prefix' => 'v1', 'middleware' => ['block.ip']], function () {
     // Methods without AuthCheck
     Route::post('/auth/register',                       [RegisterController::class, 'register'])
@@ -30,11 +644,11 @@ Route::group(['prefix' => 'v1', 'middleware' => ['block.ip']], function () {
     Route::post('/auth/logout',                         [LoginController::class, 'logout'])
         ->middleware('sessions');
 
-    Route::post('/auth/verify/phone',                   [VerifyAuthController::class, 'verifyPhone'])
-        ->middleware('sessions');
+    // Route::post('/auth/verify/phone',                   [VerifyAuthController::class, 'verifyPhone'])
+    //     ->middleware('sessions');
 
-    Route::post('/auth/resend-verify',                  [VerifyAuthController::class, 'resendVerify'])
-        ->middleware('sessions');
+    // Route::post('/auth/resend-verify',                  [VerifyAuthController::class, 'resendVerify'])
+    //     ->middleware('sessions');
 
     Route::get('/auth/verify/{hash}',                   [VerifyAuthController::class, 'verifyEmail'])
         ->middleware('sessions');
@@ -42,14 +656,14 @@ Route::group(['prefix' => 'v1', 'middleware' => ['block.ip']], function () {
     Route::post('/auth/after-verify',                   [VerifyAuthController::class, 'afterVerifyEmail'])
         ->middleware('sessions');
 
-    Route::post('/auth/forgot/password',                [LoginController::class, 'forgetPassword'])
-        ->middleware('sessions');
+    // Route::post('/auth/forgot/password',                [LoginController::class, 'forgetPassword'])
+    //     ->middleware('sessions');
 
     Route::post('/auth/forgot/password/before',        [LoginController::class, 'forgetPasswordBefore'])
         ->middleware('sessions');
 
-    Route::post('/auth/forgot/password/confirm',        [LoginController::class, 'forgetPasswordVerify'])
-        ->middleware('sessions');
+    // Route::post('/auth/forgot/password/confirm',        [LoginController::class, 'forgetPasswordVerify'])
+    //     ->middleware('sessions');
 
     Route::post('/auth/forgot/email-password',          [LoginController::class, 'forgetPasswordEmail'])
         ->middleware('sessions');

@@ -20,7 +20,7 @@ class RegisterController extends Controller
     public function register(RegisterRequest $request): JsonResponse
     {
         // For direct registration without Firebase verification
-        if ($request->input('email') && $request->input('password') && $request->input('firstname')) {
+        if (($request->input('email') || $request->input('phone')) && $request->input('password') && $request->input('firstname')) {
             return (new DirectAuth)->register($request->validated());
         }
 
