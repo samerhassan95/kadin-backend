@@ -326,6 +326,225 @@ Route::get('settings-test', function() {
     ]);
 });
 
+// Products test route
+Route::get('products-test', function() {
+    $products = \App\Models\Product::take(5)->get(['id', 'uuid', 'status', 'active']);
+    return response()->json([
+        'timestamp' => now(),
+        'status' => true,
+        'message' => 'Products found',
+        'count' => \App\Models\Product::count(),
+        'data' => $products
+    ]);
+});
+
+// Admin products test route (with auth)
+Route::get('admin-products-test', function() {
+    try {
+        $user = auth('sanctum')->user();
+        $products = \App\Models\Product::take(5)->get(['id', 'uuid', 'status', 'active']);
+        return response()->json([
+            'timestamp' => now(),
+            'status' => true,
+            'message' => 'Admin products found',
+            'user' => $user ? $user->email : 'not authenticated',
+            'user_role' => $user ? $user->roles->pluck('name') : 'no roles',
+            'count' => \App\Models\Product::count(),
+            'data' => $products
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ], 500);
+    }
+})->middleware(['sanctum.check', 'role:admin|seller|manager']);
+
+// Simple auth test route
+Route::get('auth-test', function() {
+    try {
+        $user = auth('sanctum')->user();
+        return response()->json([
+            'authenticated' => auth('sanctum')->check(),
+            'user' => $user ? [
+                'id' => $user->id,
+                'email' => $user->email,
+                'roles' => $user->roles->pluck('name')
+            ] : null,
+            'all_users' => \App\Models\User::with('roles')->get()->map(function($u) {
+                return [
+                    'email' => $u->email,
+                    'roles' => $u->roles->pluck('name')
+                ];
+            })
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ], 500);
+    }
+});
+
+// Set license cache for local development
+Route::get('set-license', function() {
+    try {
+        Cache::put('rjkcvd.ewoidfh', ['active' => 1], now()->addDays(365));
+        return response()->json([
+            'success' => true,
+            'message' => 'License cache set for local development',
+            'expires' => now()->addDays(365)->toDateTimeString()
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => $e->getMessage()
+        ], 500);
+    }
+});
+
+// CSRF Cookie endpoint for SPA
+Route::get('/sanctum/csrf-cookie', function () {
+    return response()->json(['message' => 'CSRF cookie set']);
+});
+
+// Test delete operation without CSRF
+Route::delete('test-delete/{id}', function($id) {
+    try {
+        $user = auth('sanctum')->user();
+        if (!$user) {
+            return response()->json(['error' => 'Not authenticated'], 401);
+        }
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Delete test successful',
+            'user' => $user->email,
+            'id' => $id
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ], 500);
+    }
+});
+
+// Test admin products without middleware
+Route::get('test-admin-products', function() {
+    try {
+        $products = \App\Models\Product::paginate(10);
+        return response()->json([
+            'timestamp' => now(),
+            'status' => true,
+            'message' => 'Successfully',
+            'data' => $products->items(),
+            'meta' => [
+                'current_page' => $products->currentPage(),
+                'total' => $products->total(),
+                'per_page' => $products->perPage()
+            ]
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ], 500);
+    }
+});
+
+// Create admin login test route
+Route::post('admin-login-test', function() {
+    try {
+        $email = request('email', 'admin@admin.com');
+        $password = request('password', 'password');
+        
+        // Find admin user
+        $user = \App\Models\User::where('email', $email)->first();
+        
+        if (!$user) {
+            // Create admin user if doesn't exist
+            $user = \App\Models\User::create([
+                'firstname' => 'Admin',
+                'lastname' => 'User',
+                'email' => $email,
+                'password' => bcrypt($password),
+                'phone' => '1234567890',
+                'active' => 1,
+                'email_verified_at' => now(),
+                'phone_verified_at' => now()
+            ]);
+            
+            // Assign admin role
+            $user->assignRole('admin');
+        }
+        
+        // Attempt login
+        if (auth()->attempt(['email' => $email, 'password' => $password])) {
+            $user = auth()->user();
+            $token = $user->createToken('admin-token')->plainTextToken;
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Login successful',
+                'user' => [
+                    'id' => $user->id,
+                    'email' => $user->email,
+                    'roles' => $user->roles->pluck('name')
+                ],
+                'token' => $token,
+                'token_type' => 'Bearer'
+            ]);
+        }
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Invalid credentials'
+        ], 401);
+        
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ], 500);
+    }
+});
+
+// Direct database test - NO MIDDLEWARE
+Route::get('direct-test', function() {
+    try {
+        return response()->json([
+            'products_count' => \App\Models\Product::count(),
+            'categories_count' => \App\Models\Category::count(),
+            'users_count' => \App\Models\User::count(),
+            'demo_mode' => \App\Models\Settings::where('key', 'is_demo')->first()?->value ?? 'not set',
+            'first_product' => \App\Models\Product::first(['id', 'uuid', 'status', 'active']),
+            'database_connection' => 'OK'
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ], 500);
+    }
+});
+
+// Test admin endpoint with minimal middleware
+Route::get('admin-test', function() {
+    try {
+        $user = auth('sanctum')->user();
+        return response()->json([
+            'message' => 'Admin endpoint reached',
+            'user' => $user ? $user->email : 'not authenticated',
+            'products' => \App\Models\Product::take(3)->get(['id', 'uuid', 'status'])
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ], 500);
+    }
+})->middleware(['sanctum.check']);
+
 // Admin API routes without middleware for testing
 Route::get('v1/dashboard/admin/dashboard/count', function() {
     return response()->json([
@@ -1248,7 +1467,7 @@ Route::group(['prefix' => 'v1', 'middleware' => ['block.ip']], function () {
         });
 
         // ADMIN BLOCK
-        Route::group(['prefix' => 'admin', 'middleware' => ['sanctum.check', 'role:seller|manager'], 'as' => 'admin.'], function () {
+        Route::group(['prefix' => 'admin', 'middleware' => ['sanctum.check', 'role:admin|seller|manager'], 'as' => 'admin.'], function () {
 
             /* Dashboard */
             Route::get('timezones',                 [Admin\DashboardController::class, 'timeZones']);

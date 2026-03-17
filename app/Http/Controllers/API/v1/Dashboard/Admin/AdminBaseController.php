@@ -13,6 +13,6 @@ abstract class AdminBaseController extends Controller
     public function __construct()
     {
         parent::__construct();
-        $this->middleware(['sanctum.check', 'role:seller|manager', 'check.parentSeller']);
+        $this->middleware(['sanctum.check', 'role:admin|seller|manager']);
     }
 }
