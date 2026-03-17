@@ -893,13 +893,15 @@ Route::group(['prefix' => 'v1', 'middleware' => ['block.ip']], function () {
 //    Route::get('/login/{provider}',                 [LoginController::class,'redirectToProvider']);
     Route::post('/auth/{provider}/callback',        [LoginController::class, 'handleProviderCallback']);
 
+    // Installation check route (only for frontend compatibility)
     Route::group(['prefix' => 'install'], function () {
         Route::get('/init/check',                   [Rest\InstallController::class, 'checkInitFile']);
-        Route::post('/init/set',                    [Rest\InstallController::class, 'setInitFile']);
-        Route::post('/database/update',             [Rest\InstallController::class, 'setDatabase']);
-        Route::post('/admin/create',                [Rest\InstallController::class, 'createAdmin']);
-        Route::post('/migration/run',               [Rest\InstallController::class, 'migrationRun']);
-        Route::post('/check/licence',               [Rest\InstallController::class, 'licenceCredentials']);
+        // Other installation routes disabled for production
+        // Route::post('/init/set',                    [Rest\InstallController::class, 'setInitFile']);
+        // Route::post('/database/update',             [Rest\InstallController::class, 'setDatabase']);
+        // Route::post('/admin/create',                [Rest\InstallController::class, 'createAdmin']);
+        // Route::post('/migration/run',               [Rest\InstallController::class, 'migrationRun']);
+        // Route::post('/check/licence',               [Rest\InstallController::class, 'licenceCredentials']);
     });
 
     Route::group(['prefix' => 'rest'], function () {
