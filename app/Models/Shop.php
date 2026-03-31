@@ -281,6 +281,11 @@ class Shop extends Model
         return $this->hasMany(ShopSocial::class);
     }
 
+    public function reels(): HasMany
+    {
+        return $this->hasMany(Reel::class);
+    }
+
     public function scopeFilter($query, array $filter)
     {
         $regionId   = data_get($filter, 'region_id');
@@ -379,6 +384,11 @@ class Shop extends Model
                             ->orWhere('delivery_time->type','month');
                     })
                     ->orderByRaw('CAST(JSON_EXTRACT(delivery_time, "$.from") AS from)', 'desc');
+            })
+            ->when(data_get($filter, 'has_reels'), function (Builder $query) {
+                $query->whereHas('reels', function ($q) {
+                    $q->where('active', true);
+                });
             })
             ->when(data_get($filter, 'order_by'), function (Builder $query, $orderBy) {
 

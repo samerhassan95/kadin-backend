@@ -1043,6 +1043,16 @@ Route::group(['prefix' => 'v1', 'middleware' => ['block.ip']], function () {
         /* Stories */
         Route::get('stories/paginate',              [Rest\StoryController::class, 'paginate']);
 
+        /* Reels */
+        Route::get('reels/test', function() {
+            return response()->json([
+                'message' => 'Reels test route working',
+                'timestamp' => now()
+            ]);
+        });
+        Route::get('reels/paginate',                [Rest\ReelsController::class, 'paginate']);
+        Route::post('reels/{id}/like',              [Rest\ReelsController::class, 'like'])->middleware('sanctum.check');
+
         /* Order Statuses */
         Route::get('order-statuses',                [Rest\OrderStatusController::class, 'index']);
         Route::get('order-statuses/select',         [Rest\OrderStatusController::class, 'select']);
@@ -1391,6 +1401,13 @@ Route::group(['prefix' => 'v1', 'middleware' => ['block.ip']], function () {
 
             Route::apiResource('stories', Seller\StoryController::class);
             Route::delete('stories/delete',     [Seller\StoryController::class, 'destroy']);
+
+            /* Reels */
+            Route::post('reels/upload-video',   [Seller\ReelsController::class, 'uploadVideo']);
+            Route::post('reels/{reel}/toggle-active', [Seller\ReelsController::class, 'toggleActive']);
+            
+            Route::apiResource('reels', Seller\ReelsController::class);
+            Route::delete('reels/delete',       [Seller\ReelsController::class, 'destroy']);
 
             /* Tags */
             Route::apiResource('tags', Seller\TagController::class);
@@ -1752,6 +1769,13 @@ Route::group(['prefix' => 'v1', 'middleware' => ['block.ip']], function () {
             Route::apiResource('stories', Admin\StoryController::class)->only(['index', 'show']);
             Route::delete('stories/delete',         [Admin\StoryController::class, 'destroy']);
             Route::get('stories/drop/all',          [Admin\StoryController::class, 'dropAll']);
+
+            /* Reels */
+            Route::post('reels/upload-video',       [Admin\ReelsController::class, 'uploadVideo']);
+            Route::apiResource('reels', Admin\ReelsController::class);
+            Route::delete('reels/delete',           [Admin\ReelsController::class, 'destroy']);
+            Route::get('reels/drop/all',            [Admin\ReelsController::class, 'dropAll']);
+            Route::post('reels/{reel}/toggle-active', [Admin\ReelsController::class, 'toggleActive']);
 
             /* Order Statuses */
             Route::get('order-statuses',                [Admin\OrderStatusController::class, 'index']);

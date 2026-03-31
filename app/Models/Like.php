@@ -22,7 +22,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read User $user
- * @property-read Blog|Product|Shop|Banner|null $likable
+ * @property-read Blog|Product|Shop|Banner|Reel|null $likable
  * @method static Builder|self filter(array $filter)
  * @method static Builder|self newModelQuery()
  * @method static Builder|self newQuery()
@@ -46,6 +46,7 @@ class Like extends Model
         'product' => Product::class,
         'shop'    => Shop::class,
         'banner'  => Banner::class,
+        'reel'    => Reel::class,
     ];
 
     public function user(): BelongsTo

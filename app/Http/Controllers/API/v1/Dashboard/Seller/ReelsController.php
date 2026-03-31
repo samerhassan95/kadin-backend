@@ -1,0 +1,229 @@
+<?php
+declare(strict_types=1);
+
+namespace App\Http\Controllers\API\v1\Dashboard\Seller;
+
+use App\Helpers\ResponseError;
+use App\Http\Requests\FilterParamsRequest;
+use App\Http\Resources\ReelResource;
+use App\Models\Reel;
+use App\Repositories\ReelsRepository\ReelsRepository;
+use App\Services\ReelsService\ReelsService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+
+class ReelsController extends SellerBaseController
+{
+    public function __construct(
+        private ReelsService $service, 
+        private ReelsRepository $repository
+    ) {
+        parent::__construct();
+    }
+
+    /**
+     * Display a listing of the resource.
+     *
+     * @param FilterParamsRequest $request
+     * @return JsonResponse|AnonymousResourceCollection
+     */
+    public function index(FilterParamsRequest $request): JsonResponse|AnonymousResourceCollection
+    {
+        $reels = Reel::where('shop_id', $this->shop->id)
+            ->with(['shop', 'shop.translation'])
+            ->orderBy('created_at', 'desc')
+            ->paginate($request->input('perPage', 15));
+
+        return $this->successResponse(
+            __('errors.' . ResponseError::NO_ERROR, locale: $this->language),
+            [
+                'data' => $reels->items(),
+                'meta' => [
+                    'current_page' => $reels->currentPage(),
+                    'last_page' => $reels->lastPage(),
+                    'total' => $reels->total(),
+                    'per_page' => $reels->perPage()
+                ]
+            ]
+        );
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function store(Request $request): JsonResponse
+    {
+        $request->validate([
+            'video_url' => 'required|string|url',
+            'description' => 'nullable|string|max:500',
+            'active' => 'boolean'
+        ]);
+
+        try {
+            $reel = Reel::create([
+                'shop_id' => $this->shop->id,
+                'video_url' => $request->video_url,
+                'description' => $request->description,
+                'active' => $request->input('active', true),
+                'likes_count' => 0
+            ]);
+
+            return $this->successResponse(
+                __('errors.' . ResponseError::RECORD_WAS_SUCCESSFULLY_CREATED, locale: $this->language),
+                $reel
+            );
+        } catch (\Exception $e) {
+            return $this->onErrorResponse([
+                'code' => ResponseError::ERROR_500,
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param Reel $reel
+     * @return JsonResponse
+     */
+    public function show(Reel $reel): JsonResponse
+    {
+        // Check if reel belongs to current shop
+        if ($reel->shop_id !== $this->shop->id) {
+            return $this->onErrorResponse(['code' => ResponseError::ERROR_404]);
+        }
+
+        $reel->load(['shop', 'shop.translation']);
+
+        return $this->successResponse(
+            __('errors.' . ResponseError::NO_ERROR, locale: $this->language),
+            $reel
+        );
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param Reel $reel
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function update(Reel $reel, Request $request): JsonResponse
+    {
+        // Check if reel belongs to current shop
+        if ($reel->shop_id !== $this->shop->id) {
+            return $this->onErrorResponse(['code' => ResponseError::ERROR_404]);
+        }
+
+        $request->validate([
+            'video_url' => 'sometimes|string|url',
+            'description' => 'nullable|string|max:500',
+            'active' => 'boolean'
+        ]);
+
+        try {
+            $reel->update($request->only(['video_url', 'description', 'active']));
+
+            return $this->successResponse(
+                __('errors.' . ResponseError::RECORD_WAS_SUCCESSFULLY_UPDATED, locale: $this->language),
+                $reel
+            );
+        } catch (\Exception $e) {
+            return $this->onErrorResponse([
+                'code' => ResponseError::ERROR_500,
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param Reel $reel
+     * @return JsonResponse
+     */
+    public function destroy(Reel $reel): JsonResponse
+    {
+        // Check if reel belongs to current shop
+        if ($reel->shop_id !== $this->shop->id) {
+            return $this->onErrorResponse(['code' => ResponseError::ERROR_404]);
+        }
+
+        try {
+            $reel->delete();
+
+            return $this->successResponse(
+                __('errors.' . ResponseError::RECORD_WAS_SUCCESSFULLY_DELETED, locale: $this->language)
+            );
+        } catch (\Exception $e) {
+            return $this->onErrorResponse([
+                'code' => ResponseError::ERROR_500,
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Upload video file for reel
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function uploadVideo(Request $request): JsonResponse
+    {
+        $request->validate([
+            'video' => 'required|file|mimes:mp4,mov,avi,wmv|max:50000' // 50MB max
+        ]);
+
+        try {
+            $file = $request->file('video');
+            $path = $file->store('reels', 'public');
+            $url = asset('storage/' . $path);
+
+            return $this->successResponse(
+                __('errors.' . ResponseError::NO_ERROR, locale: $this->language),
+                [
+                    'video_url' => $url,
+                    'path' => $path
+                ]
+            );
+        } catch (\Exception $e) {
+            return $this->onErrorResponse([
+                'code' => ResponseError::ERROR_500,
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Toggle reel active status
+     *
+     * @param Reel $reel
+     * @return JsonResponse
+     */
+    public function toggleActive(Reel $reel): JsonResponse
+    {
+        // Check if reel belongs to current shop
+        if ($reel->shop_id !== $this->shop->id) {
+            return $this->onErrorResponse(['code' => ResponseError::ERROR_404]);
+        }
+
+        try {
+            $reel->update(['active' => !$reel->active]);
+
+            return $this->successResponse(
+                __('errors.' . ResponseError::RECORD_WAS_SUCCESSFULLY_UPDATED, locale: $this->language),
+                $reel
+            );
+        } catch (\Exception $e) {
+            return $this->onErrorResponse([
+                'code' => ResponseError::ERROR_500,
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+}
