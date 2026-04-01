@@ -6,6 +6,7 @@ namespace App\Http\Controllers\API\v1\Auth;
 use App\Helpers\ResponseError;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\RegisterRequest;
+use App\Models\User;
 use App\Services\AuthService\AuthByEmail;
 use App\Services\AuthService\AuthByMobilePhone;
 use App\Services\AuthService\DirectAuth;
@@ -19,20 +20,30 @@ class RegisterController extends Controller
 
     public function register(RegisterRequest $request): JsonResponse
     {
-        // Always use direct registration when password is provided (bypass SMS)
-        if ($request->input('password')) {
-            return (new DirectAuth)->register($request->validated());
+        $email = $request->input('email');
+        $phone = $request->input('phone');
+        
+        // Check if user already exists
+        $existingUser = null;
+        if ($email) {
+            $existingUser = User::where('email', $email)->first();
+        } elseif ($phone) {
+            $existingUser = User::where('phone', $phone)->first();
         }
-
-        // Legacy Firebase-based registration (only if no password provided)
-        if ($request->input('phone')) {
-            return (new AuthByMobilePhone)->authentication($request->validated());
-        } else if ($request->input('email')) {
-            return (new AuthByEmail)->authentication($request->validated());
+        
+        if ($existingUser) {
+            return $this->onErrorResponse([
+                'code' => ResponseError::ERROR_400,
+                'message' => 'Account already exists with this ' . ($email ? 'email' : 'phone number')
+            ]);
         }
-
-        return $this->onErrorResponse([
-            'code' => ResponseError::ERROR_400
-        ]);
+        
+        // Create new user without SMS verification
+        $data = $request->validated();
+        if (!$request->input('password')) {
+            $data['password'] = 'defaultpass123'; // Default password for SMS-less registration
+        }
+        
+        return (new DirectAuth)->register($data);
     }
 }

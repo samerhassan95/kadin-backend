@@ -24,13 +24,21 @@ class DirectAuth extends CoreService
     public function register(array $array): JsonResponse
     {
         try {
+            // Set default values for missing fields
+            $firstname = data_get($array, 'firstname') ?: 
+                        data_get($array, 'email') ?: 
+                        data_get($array, 'phone') ?: 
+                        'User';
+            
+            $lastname = data_get($array, 'lastname') ?: '';
+            
             /** @var User $user */
             $user = $this->model()->create([
-                'firstname'         => data_get($array, 'firstname'),
-                'lastname'          => data_get($array, 'lastname'),
+                'firstname'         => $firstname,
+                'lastname'          => $lastname,
                 'email'             => data_get($array, 'email'),
                 'phone'             => data_get($array, 'phone'),
-                'password'          => Hash::make(data_get($array, 'password')),
+                'password'          => Hash::make(data_get($array, 'password', 'defaultpass123')),
                 'email_verified_at' => now(), // Auto verify for direct registration
                 'phone_verified_at' => now(), // Auto verify for direct registration
                 'active'            => true,
@@ -38,7 +46,7 @@ class DirectAuth extends CoreService
             ]);
 
             if (!$user->hasAnyRole(Role::query()->pluck('name')->toArray())) {
-                $user->syncRoles('user');
+                $user->syncRoles('seller');
             }
 
             // Create wallet for user
