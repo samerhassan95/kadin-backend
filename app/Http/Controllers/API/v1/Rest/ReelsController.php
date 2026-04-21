@@ -30,16 +30,28 @@ class ReelsController extends RestBaseController
         try {
             $userId = auth('sanctum')->id();
             $shopId = $request->input('shop_id');
+            $productId = $request->input('product_id');
+            $lang = $request->input('lang', 'en');
             
-            $reels = \App\Models\Reel::with(['shop', 'shop.translation'])
+            $reels = \App\Models\Reel::with([
+                'shop', 
+                'shop.translation' => function($q) use ($lang) {
+                    $q->where('locale', $lang);
+                },
+                'product',
+                'product.translation' => function($q) use ($lang) {
+                    $q->where('locale', $lang);
+                }
+            ])
                 ->when($shopId, fn($q, $shopId) => $q->where('shop_id', $shopId))
+                ->when($productId, fn($q, $productId) => $q->where('product_id', $productId))
                 ->active()
                 ->orderBy('created_at', 'desc')
                 ->paginate($request->input('perPage', 15));
             
             $reelsData = [];
             foreach ($reels as $reel) {
-                $reelsData[] = [
+                $reelData = [
                     'id' => $reel->id,
                     'video_url' => $reel->video_url,
                     'description' => $reel->description,
@@ -76,9 +88,33 @@ class ReelsController extends RestBaseController
                         ] : null
                     ]
                 ];
+
+                // Add product data if exists
+                if ($reel->product) {
+                    $reelData['product'] = [
+                        'id' => $reel->product->id,
+                        'uuid' => $reel->product->uuid,
+                        'shop_id' => $reel->product->shop_id,
+                        'category_id' => $reel->product->category_id,
+                        'price' => (float) $reel->product->price,
+                        'img' => $reel->product->img,
+                        'stock' => (int) $reel->product->stock,
+                        'active' => (bool) $reel->product->active,
+                        'translation' => $reel->product->translation ? [
+                            'id' => $reel->product->translation->id,
+                            'locale' => $reel->product->translation->locale,
+                            'title' => $reel->product->translation->title ?? 'Product Name',
+                            'description' => $reel->product->translation->description ?? ''
+                        ] : null
+                    ];
+                } else {
+                    $reelData['product'] = null;
+                }
+
+                $reelsData[] = $reelData;
             }
 
-            // Return format matching the Flutter documentation exactly
+            // Return format matching the documentation exactly
             return response()->json([
                 'data' => $reelsData,
                 'meta' => [

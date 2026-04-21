@@ -25,6 +25,7 @@ class StoreRequest extends FormRequest
     {
         return [
             'shop_id' => 'required|integer|exists:shops,id',
+            'product_id' => 'nullable|integer|exists:products,id',
             'video_url' => [
                 'required',
                 'string',
@@ -51,6 +52,7 @@ class StoreRequest extends FormRequest
         return [
             'shop_id.required' => 'Shop is required',
             'shop_id.exists' => 'Selected shop does not exist',
+            'product_id.exists' => 'Selected product does not exist',
             'video_url.required' => 'Video URL is required',
             'video_url.max' => 'Video URL must not exceed 255 characters',
             'description.max' => 'Description must not exceed 1000 characters',

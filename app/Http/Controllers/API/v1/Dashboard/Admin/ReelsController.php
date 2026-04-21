@@ -21,8 +21,9 @@ class ReelsController extends AdminBaseController
      */
     public function index(FilterParamsRequest $request): JsonResponse
     {
-        $reels = Reel::with(['shop', 'shop.translation'])
+        $reels = Reel::with(['shop', 'shop.translation', 'product', 'product.translation'])
             ->when($request->shop_id, fn($q, $shopId) => $q->where('shop_id', $shopId))
+            ->when($request->product_id, fn($q, $productId) => $q->where('product_id', $productId))
             ->when(isset($request->active), fn($q) => $q->where('active', $request->active))
             ->orderBy('created_at', 'desc')
             ->paginate($request->input('perPage', 15));
@@ -51,7 +52,7 @@ class ReelsController extends AdminBaseController
     {
         try {
             $reel = Reel::create($request->validated());
-            $reel->load(['shop', 'shop.translation']);
+            $reel->load(['shop', 'shop.translation', 'product', 'product.translation']);
 
             return $this->successResponse(
                 __('errors.' . ResponseError::RECORD_WAS_SUCCESSFULLY_CREATED, locale: $this->language),
@@ -73,7 +74,7 @@ class ReelsController extends AdminBaseController
      */
     public function show(Reel $reel): JsonResponse
     {
-        $reel->load(['shop', 'shop.translation']);
+        $reel->load(['shop', 'shop.translation', 'product', 'product.translation']);
 
         return $this->successResponse(
             __('errors.' . ResponseError::NO_ERROR, locale: $this->language),
@@ -92,7 +93,7 @@ class ReelsController extends AdminBaseController
     {
         try {
             $reel->update($request->validated());
-            $reel->load(['shop', 'shop.translation']);
+            $reel->load(['shop', 'shop.translation', 'product', 'product.translation']);
 
             return $this->successResponse(
                 __('errors.' . ResponseError::RECORD_WAS_SUCCESSFULLY_UPDATED, locale: $this->language),

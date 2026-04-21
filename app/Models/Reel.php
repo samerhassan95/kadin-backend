@@ -44,6 +44,15 @@ class Reel extends Model
 
     protected $guarded = ['id'];
 
+    protected $fillable = [
+        'shop_id',
+        'product_id', 
+        'video_url',
+        'description',
+        'active',
+        'likes_count'
+    ];
+
     protected $casts = [
         'active' => 'boolean',
         'likes_count' => 'integer',
@@ -52,6 +61,11 @@ class Reel extends Model
     public function shop(): BelongsTo
     {
         return $this->belongsTo(Shop::class);
+    }
+
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class);
     }
 
     public function likes(): MorphMany
