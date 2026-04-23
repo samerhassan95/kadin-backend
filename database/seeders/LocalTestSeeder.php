@@ -49,8 +49,8 @@ class LocalTestSeeder extends Seeder
             ['email' => 'admin@kadin.app'],
             [
                 'uuid' => Str::uuid(),
-                'firstname' => 'Admin',
-                'lastname' => 'User',
+                'firstname' => 'Kadin',
+                'lastname' => 'Seller',
                 'email' => 'admin@kadin.app',
                 'phone' => '01000000000',
                 'password' => Hash::make('123456'),
@@ -61,9 +61,10 @@ class LocalTestSeeder extends Seeder
             ]
         );
         
-        $admin->syncRoles(['admin']);
+        // Change to seller role instead of admin
+        $admin->syncRoles(['seller']);
         
-        // Create wallet for admin
+        // Create wallet for seller
         DB::table('wallets')->updateOrInsert(
             ['user_id' => $admin->id],
             [
@@ -75,6 +76,65 @@ class LocalTestSeeder extends Seeder
                 'updated_at' => now(),
             ]
         );
+        
+        // Create shop for seller
+        $this->createShopForSeller($admin);
+    }
+    
+    private function createShopForSeller($user)
+    {
+        $shop = DB::table('shops')->updateOrInsert(
+            ['user_id' => $user->id],
+            [
+                'uuid' => Str::uuid(),
+                'user_id' => $user->id,
+                'tax' => 0,
+                'percentage' => 0,
+                'phone' => $user->phone,
+                'open' => 1,
+                'visibility' => 1,
+                'status' => 'approved',
+                'status_note' => 'Auto approved',
+                'delivery_time_type' => 'minute',
+                'delivery_time_to' => '60',
+                'delivery_time_from' => '30',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        );
+        
+        // Get shop ID
+        $shopId = DB::table('shops')->where('user_id', $user->id)->value('id');
+        
+        if ($shopId) {
+            // Add shop translation
+            DB::table('shop_translations')->updateOrInsert(
+                ['shop_id' => $shopId, 'locale' => 'en'],
+                [
+                    'shop_id' => $shopId,
+                    'locale' => 'en',
+                    'title' => 'Kadin Shop',
+                    'description' => 'Official Kadin Marketplace Shop',
+                    'address' => 'Cairo, Egypt',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]
+            );
+            
+            // Add Arabic translation
+            DB::table('shop_translations')->updateOrInsert(
+                ['shop_id' => $shopId, 'locale' => 'ar'],
+                [
+                    'shop_id' => $shopId,
+                    'locale' => 'ar',
+                    'title' => 'متجر كادين',
+                    'description' => 'المتجر الرسمي لسوق كادين',
+                    'address' => 'القاهرة، مصر',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]
+            );
+        }
     }
     
     private function createTestUser()

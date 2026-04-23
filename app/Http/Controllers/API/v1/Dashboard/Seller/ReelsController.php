@@ -31,7 +31,7 @@ class ReelsController extends SellerBaseController
     public function index(FilterParamsRequest $request): JsonResponse|AnonymousResourceCollection
     {
         $reels = Reel::where('shop_id', $this->shop->id)
-            ->with(['shop', 'shop.translation'])
+            ->with(['shop', 'shop.translation', 'product', 'product.translation'])
             ->orderBy('created_at', 'desc')
             ->paginate($request->input('perPage', 15));
 
@@ -58,19 +58,26 @@ class ReelsController extends SellerBaseController
     public function store(Request $request): JsonResponse
     {
         $request->validate([
-            'video_url' => 'required|string|url',
+            'title' => 'required|string|max:255',
+            'video_url' => 'required|string',
             'description' => 'nullable|string|max:500',
-            'active' => 'boolean'
+            'product_id' => 'nullable|exists:products,id',
+            'is_active' => 'boolean'
         ]);
 
         try {
             $reel = Reel::create([
                 'shop_id' => $this->shop->id,
+                'title' => $request->title,
                 'video_url' => $request->video_url,
                 'description' => $request->description,
-                'active' => $request->input('active', true),
+                'product_id' => $request->product_id,
+                'is_active' => $request->input('is_active', 1),
                 'likes_count' => 0
             ]);
+
+            // Load relationships for response
+            $reel->load(['shop', 'shop.translation', 'product', 'product.translation']);
 
             return $this->successResponse(
                 __('errors.' . ResponseError::RECORD_WAS_SUCCESSFULLY_CREATED, locale: $this->language),
@@ -97,7 +104,7 @@ class ReelsController extends SellerBaseController
             return $this->onErrorResponse(['code' => ResponseError::ERROR_404]);
         }
 
-        $reel->load(['shop', 'shop.translation']);
+        $reel->load(['shop', 'shop.translation', 'product', 'product.translation']);
 
         return $this->successResponse(
             __('errors.' . ResponseError::NO_ERROR, locale: $this->language),
@@ -120,13 +127,18 @@ class ReelsController extends SellerBaseController
         }
 
         $request->validate([
-            'video_url' => 'sometimes|string|url',
+            'title' => 'sometimes|string|max:255',
+            'video_url' => 'sometimes|string',
             'description' => 'nullable|string|max:500',
-            'active' => 'boolean'
+            'product_id' => 'nullable|exists:products,id',
+            'is_active' => 'boolean'
         ]);
 
         try {
-            $reel->update($request->only(['video_url', 'description', 'active']));
+            $reel->update($request->only(['title', 'video_url', 'description', 'product_id', 'is_active']));
+
+            // Load relationships for response
+            $reel->load(['shop', 'shop.translation', 'product', 'product.translation']);
 
             return $this->successResponse(
                 __('errors.' . ResponseError::RECORD_WAS_SUCCESSFULLY_UPDATED, locale: $this->language),
@@ -213,7 +225,10 @@ class ReelsController extends SellerBaseController
         }
 
         try {
-            $reel->update(['active' => !$reel->active]);
+            $reel->update(['is_active' => !$reel->is_active]);
+
+            // Load relationships for response
+            $reel->load(['shop', 'shop.translation', 'product', 'product.translation']);
 
             return $this->successResponse(
                 __('errors.' . ResponseError::RECORD_WAS_SUCCESSFULLY_UPDATED, locale: $this->language),

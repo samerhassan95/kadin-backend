@@ -61,10 +61,13 @@ class FileHelper
 
             $url = $file->storeAs("public/$dir/$path", $fileName, $options);
 
+            // Return just the relative path without the full URL
+            $relativePath = str_replace('public/', '', $url);
+
             return [
                 'status' => true,
                 'code'   => ResponseError::NO_ERROR,
-                'data'   => config('app.img_host') . (!data_get($isAws, 'value') ? str_replace('public/', 'storage/', $url) : $url)
+                'data'   => $relativePath  // Return: mp4/other/filename.mp4 or images/other/filename.mp4
             ];
         } catch (Throwable $e) {
 

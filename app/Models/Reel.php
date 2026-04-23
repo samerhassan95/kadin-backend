@@ -46,15 +46,18 @@ class Reel extends Model
 
     protected $fillable = [
         'shop_id',
-        'product_id', 
+        'product_id',
+        'title',
         'video_url',
         'description',
         'active',
+        'is_active',
         'likes_count'
     ];
 
     protected $casts = [
         'active' => 'boolean',
+        'is_active' => 'boolean',
         'likes_count' => 'integer',
     ];
 
