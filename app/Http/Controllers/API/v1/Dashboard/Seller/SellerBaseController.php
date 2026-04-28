@@ -21,10 +21,14 @@ abstract class SellerBaseController extends Controller
         $this->middleware('check.shop')
             ->except('shopCreate', 'shopShow', 'shopUpdate');
 
-        /** @var User $user */
-        $user = auth('sanctum')->user();
-        
-        $this->shop = $user?->shop ?? $user?->moderatorShop;
+        $this->middleware(function ($request, $next) {
+            /** @var User $user */
+            $user = auth('sanctum')->user();
+            
+            $this->shop = $user?->shop ?? $user?->moderatorShop;
+
+            return $next($request);
+        });
     }
 
 }
