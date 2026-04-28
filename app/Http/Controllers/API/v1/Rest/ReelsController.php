@@ -98,7 +98,7 @@ class ReelsController extends RestBaseController
                         'category_id' => $reel->product->category_id,
                         'price' => (float) $reel->product->price,
                         'img' => $reel->product->img,
-                        'stock' => (int) $reel->product->stock,
+                        'stock' => (int) $reel->product->stock?->quantity,
                         'active' => (bool) $reel->product->active,
                         'translation' => $reel->product->translation ? [
                             'id' => $reel->product->translation->id,
