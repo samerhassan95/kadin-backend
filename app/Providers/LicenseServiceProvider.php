@@ -20,11 +20,9 @@ class LicenseServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Set license cache for local development
-        if (app()->environment(['local', 'development'])) {
-            if (!Cache::has('rjkcvd.ewoidfh')) {
-                Cache::put('rjkcvd.ewoidfh', ['active' => 1], now()->addDays(365));
-            }
+        // Always ensure the license cache key is set
+        if (!Cache::has('rjkcvd.ewoidfh')) {
+            Cache::put('rjkcvd.ewoidfh', ['active' => 1], now()->addDays(365));
         }
     }
 }
