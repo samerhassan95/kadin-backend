@@ -45,6 +45,17 @@ class ReelsController extends SellerBaseController
             }
 
             $reel->video_url = $videoUrl;
+
+            // Fix shop images
+            if ($reel->shop) {
+                if ($reel->shop->background_img && !str_starts_with($reel->shop->background_img, 'http')) {
+                    $reel->shop->background_img = $imgHost . '/' . ltrim($reel->shop->background_img, '/');
+                }
+                if ($reel->shop->logo_img && !str_starts_with($reel->shop->logo_img, 'http')) {
+                    $reel->shop->logo_img = $imgHost . '/' . ltrim($reel->shop->logo_img, '/');
+                }
+            }
+
             $reel->shop_name = $reel->shop->translations->where('locale', $lang)->first()?->title
                 ?? $reel->shop->translations->first()?->title
                 ?? null;

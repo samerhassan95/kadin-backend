@@ -81,8 +81,12 @@ class ReelsController extends RestBaseController
                         'visibility' => (bool) $reel->shop->visibility,
                         'open_time' => $reel->shop->open_time,
                         'close_time' => $reel->shop->close_time,
-                        'background_img' => $reel->shop->background_img,
-                        'logo_img' => $reel->shop->logo_img,
+                        'background_img' => $reel->shop->background_img && !str_starts_with($reel->shop->background_img, 'http')
+                            ? rtrim(config('app.img_host'), '/') . '/' . ltrim($reel->shop->background_img, '/')
+                            : $reel->shop->background_img,
+                        'logo_img' => $reel->shop->logo_img && !str_starts_with($reel->shop->logo_img, 'http')
+                            ? rtrim(config('app.img_host'), '/') . '/' . ltrim($reel->shop->logo_img, '/')
+                            : $reel->shop->logo_img,
                         'min_amount' => (float) $reel->shop->min_amount,
                         'status' => $reel->shop->status,
                         'status_note' => $reel->shop->status_note,
