@@ -81,12 +81,20 @@ class ReelsController extends RestBaseController
                         'visibility' => (bool) $reel->shop->visibility,
                         'open_time' => $reel->shop->open_time,
                         'close_time' => $reel->shop->close_time,
-                        'background_img' => $reel->shop->background_img && !str_starts_with($reel->shop->background_img, 'http')
-                            ? rtrim(config('app.img_host'), '/') . '/' . ltrim($reel->shop->background_img, '/')
-                            : $reel->shop->background_img,
-                        'logo_img' => $reel->shop->logo_img && !str_starts_with($reel->shop->logo_img, 'http')
-                            ? rtrim(config('app.img_host'), '/') . '/' . ltrim($reel->shop->logo_img, '/')
-                            : $reel->shop->logo_img,
+                        'background_img' => (function() use ($reel) {
+                            $img = $reel->shop->background_img;
+                            if (!$img || str_starts_with($img, 'http')) return $img;
+                            $path = ltrim($img, '/');
+                            if (!str_starts_with($path, 'storage/')) $path = 'storage/' . $path;
+                            return rtrim(config('app.img_host'), '/') . '/' . $path;
+                        })(),
+                        'logo_img' => (function() use ($reel) {
+                            $img = $reel->shop->logo_img;
+                            if (!$img || str_starts_with($img, 'http')) return $img;
+                            $path = ltrim($img, '/');
+                            if (!str_starts_with($path, 'storage/')) $path = 'storage/' . $path;
+                            return rtrim(config('app.img_host'), '/') . '/' . $path;
+                        })(),
                         'min_amount' => (float) $reel->shop->min_amount,
                         'status' => $reel->shop->status,
                         'status_note' => $reel->shop->status_note,

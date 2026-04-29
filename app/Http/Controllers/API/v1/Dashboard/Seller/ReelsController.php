@@ -46,13 +46,21 @@ class ReelsController extends SellerBaseController
 
             $reel->video_url = $videoUrl;
 
-            // Fix shop images
+            // Fix shop images (stored in storage/ folder)
             if ($reel->shop) {
                 if ($reel->shop->background_img && !str_starts_with($reel->shop->background_img, 'http')) {
-                    $reel->shop->background_img = $imgHost . '/' . ltrim($reel->shop->background_img, '/');
+                    $path = ltrim($reel->shop->background_img, '/');
+                    if (!str_starts_with($path, 'storage/')) {
+                        $path = 'storage/' . $path;
+                    }
+                    $reel->shop->background_img = $imgHost . '/' . $path;
                 }
                 if ($reel->shop->logo_img && !str_starts_with($reel->shop->logo_img, 'http')) {
-                    $reel->shop->logo_img = $imgHost . '/' . ltrim($reel->shop->logo_img, '/');
+                    $path = ltrim($reel->shop->logo_img, '/');
+                    if (!str_starts_with($path, 'storage/')) {
+                        $path = 'storage/' . $path;
+                    }
+                    $reel->shop->logo_img = $imgHost . '/' . $path;
                 }
             }
 
