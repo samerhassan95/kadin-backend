@@ -62,8 +62,8 @@ class ReelsController extends RestBaseController
                     'description' => $reel->description,
                     'is_liked' => $reel->isLikedByUser($userId),
                     'likes_count' => $reel->likes_count,
-                    'shop_name' => $reel->shop->translation->title ?? 'Shop Name',
-                    'product_name' => $reel->product ? ($reel->product->translation->title ?? 'Product Name') : null,
+                    'shop_name' => $reel->shop->translation?->title ?? 'Shop Name',
+                    'product_name' => $reel->product ? ($reel->product->translation?->title ?? 'Product Name') : null,
                     'created_at' => $reel->created_at?->format('Y-m-d\TH:i:s\Z'),
                     'updated_at' => $reel->updated_at?->format('Y-m-d\TH:i:s\Z'),
                     'shop' => [
