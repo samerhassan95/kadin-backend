@@ -31,20 +31,42 @@ class ReelsController extends SellerBaseController
     public function index(FilterParamsRequest $request): JsonResponse|AnonymousResourceCollection
     {
         $reels = Reel::where('shop_id', $this->shop->id)
-            ->with(['shop', 'shop.translation', 'product', 'product.translation'])
+            ->with(['shop', 'shop.translations', 'product', 'product.translations'])
             ->orderBy('created_at', 'desc')
             ->paginate($request->input('perPage', 15));
 
-        return $this->successResponse(
+        $lang = $request->input('lang', 'en');
+        $imgHost = rtrim(config('app.img_host'), '/');
+
+        $items = $reels->map(function ($reel) use ($lang, $imgHost) {
+            $videoUrl = $reel->video_url;
+            if ($videoUrl && !str_starts_with($videoUrl, 'http')) {
+                $videoUrl = $imgHost . '/' . ltrim($videoUrl, '/');
+            }
+
+            $reel->video_url = $videoUrl;
+            $reel->shop_name = $reel->shop->translations->where('locale', $lang)->first()?->title
+                ?? $reel->shop->translations->first()?->title
+                ?? null;
+            $reel->product_name = $reel->product
+                ? ($reel->product->translations->where('locale', $lang)->first()?->title
+                    ?? $reel->product->translations->first()?->title
+                    ?? null)
+                : null;
+
+            return $reel;
+        });
+
+        return $this->successResponsePaginate(
             __('errors.' . ResponseError::NO_ERROR, locale: $this->language),
             [
-                'data' => $reels->items(),
+                'data' => $items,
                 'meta' => [
                     'current_page' => $reels->currentPage(),
-                    'last_page' => $reels->lastPage(),
-                    'total' => $reels->total(),
-                    'per_page' => $reels->perPage()
-                ]
+                    'last_page'    => $reels->lastPage(),
+                    'total'        => $reels->total(),
+                    'per_page'     => $reels->perPage(),
+                ],
             ]
         );
     }
