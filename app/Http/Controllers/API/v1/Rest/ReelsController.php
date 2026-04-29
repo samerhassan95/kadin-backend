@@ -51,9 +51,14 @@ class ReelsController extends RestBaseController
             
             $reelsData = [];
             foreach ($reels as $reel) {
+                $videoUrl = $reel->video_url;
+                if ($videoUrl && !str_starts_with($videoUrl, 'http')) {
+                    $videoUrl = config('app.img_host') . (str_starts_with($videoUrl, '/') ? '' : '/') . $videoUrl;
+                }
+
                 $reelData = [
                     'id' => $reel->id,
-                    'video_url' => $reel->video_url,
+                    'video_url' => $videoUrl,
                     'description' => $reel->description,
                     'is_liked' => $reel->isLikedByUser($userId),
                     'likes_count' => $reel->likes_count,
