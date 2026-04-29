@@ -34,14 +34,10 @@ class ReelsController extends RestBaseController
             $lang = $request->input('lang', 'en');
             
             $reels = \App\Models\Reel::with([
-                'shop', 
-                'shop.translation' => function($q) use ($lang) {
-                    $q->where('locale', $lang);
-                },
+                'shop',
+                'shop.translations',
                 'product',
-                'product.translation' => function($q) use ($lang) {
-                    $q->where('locale', $lang);
-                }
+                'product.translations',
             ])
                 ->when($shopId, fn($q, $shopId) => $q->where('shop_id', $shopId))
                 ->when($productId, fn($q, $productId) => $q->where('product_id', $productId))
@@ -53,7 +49,7 @@ class ReelsController extends RestBaseController
             foreach ($reels as $reel) {
                 $videoUrl = $reel->video_url;
                 if ($videoUrl && !str_starts_with($videoUrl, 'http')) {
-                    $videoUrl = config('app.img_host') . (str_starts_with($videoUrl, '/') ? '' : '/') . $videoUrl;
+                    $videoUrl = rtrim(config('app.img_host'), '/') . '/' . ltrim($videoUrl, '/');
                 }
 
                 $reelData = [
@@ -62,8 +58,14 @@ class ReelsController extends RestBaseController
                     'description' => $reel->description,
                     'is_liked' => $reel->isLikedByUser($userId),
                     'likes_count' => $reel->likes_count,
-                    'shop_name' => $reel->shop->translation?->title ?? 'Shop Name',
-                    'product_name' => $reel->product ? ($reel->product->translation?->title ?? 'Product Name') : null,
+                    'shop_name' => $reel->shop->translations->where('locale', $lang)->first()?->title
+                        ?? $reel->shop->translations->first()?->title
+                        ?? null,
+                    'product_name' => $reel->product
+                        ? ($reel->product->translations->where('locale', $lang)->first()?->title
+                            ?? $reel->product->translations->first()?->title
+                            ?? null)
+                        : null,
                     'created_at' => $reel->created_at?->format('Y-m-d\TH:i:s\Z'),
                     'updated_at' => $reel->updated_at?->format('Y-m-d\TH:i:s\Z'),
                     'shop' => [
