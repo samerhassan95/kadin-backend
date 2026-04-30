@@ -28,10 +28,25 @@ class ReelsController extends AdminBaseController
             ->orderBy('created_at', 'desc')
             ->paginate($request->input('perPage', 15));
 
+        $imgHost = rtrim(config('app.img_host'), '/');
+
+        $items = $reels->map(function ($reel) use ($imgHost) {
+            $videoUrl = $reel->video_url;
+            if ($videoUrl && !str_starts_with($videoUrl, 'http')) {
+                $path = ltrim($videoUrl, '/');
+                if (!str_starts_with($path, 'storage/')) {
+                    $path = 'storage/' . $path;
+                }
+                $videoUrl = $imgHost . '/' . $path;
+            }
+            $reel->video_url = $videoUrl;
+            return $reel;
+        });
+
         return $this->successResponse(
             __('errors.' . ResponseError::NO_ERROR, locale: $this->language),
             [
-                'data' => $reels->items(),
+                'data' => $items,
                 'meta' => [
                     'current_page' => $reels->currentPage(),
                     'last_page' => $reels->lastPage(),

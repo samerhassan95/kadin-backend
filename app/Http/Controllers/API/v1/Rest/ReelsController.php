@@ -49,7 +49,11 @@ class ReelsController extends RestBaseController
             foreach ($reels as $reel) {
                 $videoUrl = $reel->video_url;
                 if ($videoUrl && !str_starts_with($videoUrl, 'http')) {
-                    $videoUrl = rtrim(config('app.img_host'), '/') . '/' . ltrim($videoUrl, '/');
+                    $path = ltrim($videoUrl, '/');
+                    if (!str_starts_with($path, 'storage/')) {
+                        $path = 'storage/' . $path;
+                    }
+                    $videoUrl = rtrim(config('app.img_host'), '/') . '/' . $path;
                 }
 
                 $reelData = [

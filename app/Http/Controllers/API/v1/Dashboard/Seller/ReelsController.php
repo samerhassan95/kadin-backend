@@ -41,7 +41,11 @@ class ReelsController extends SellerBaseController
         $items = $reels->map(function ($reel) use ($lang, $imgHost) {
             $videoUrl = $reel->video_url;
             if ($videoUrl && !str_starts_with($videoUrl, 'http')) {
-                $videoUrl = $imgHost . '/' . ltrim($videoUrl, '/');
+                $path = ltrim($videoUrl, '/');
+                if (!str_starts_with($path, 'storage/')) {
+                    $path = 'storage/' . $path;
+                }
+                $videoUrl = $imgHost . '/' . $path;
             }
 
             $reel->video_url = $videoUrl;
