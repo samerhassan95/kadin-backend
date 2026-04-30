@@ -104,17 +104,25 @@ class ReelsController extends SellerBaseController
     {
         $request->validate([
             'title' => 'required|string|max:255',
-            'video_url' => 'required|string',
+            'video' => 'nullable|file|mimes:mp4,mov,avi,wmv|max:51200', // 50MB max
+            'video_url' => 'required_without:video|string',
             'description' => 'nullable|string|max:500',
             'product_id' => 'nullable|exists:products,id',
             'is_active' => 'boolean'
         ]);
 
         try {
+            $videoUrl = $request->video_url;
+
+            if ($request->hasFile('video')) {
+                $file = $request->file('video');
+                $path = $file->store('reels', 'public');
+                $videoUrl = $path;
+            }
             $reel = Reel::create([
                 'shop_id' => $this->shop->id,
                 'title' => $request->title,
-                'video_url' => $request->video_url,
+                'video_url' => $videoUrl,
                 'description' => $request->description,
                 'product_id' => $request->product_id,
                 'is_active' => $request->input('is_active', 1),
@@ -123,6 +131,16 @@ class ReelsController extends SellerBaseController
 
             // Load relationships for response
             $reel->load(['shop', 'shop.translation', 'product', 'product.translation']);
+
+            // Format URL for the response
+            $imgHost = rtrim(config('app.img_host'), '/');
+            if ($reel->video_url && !str_starts_with($reel->video_url, 'http')) {
+                $path = ltrim($reel->video_url, '/');
+                if (!str_starts_with($path, 'storage/')) {
+                    $path = 'storage/' . $path;
+                }
+                $reel->video_url = $imgHost . '/' . $path;
+            }
 
             return $this->successResponse(
                 __('errors.' . ResponseError::RECORD_WAS_SUCCESSFULLY_CREATED, locale: $this->language),
@@ -184,6 +202,16 @@ class ReelsController extends SellerBaseController
 
             // Load relationships for response
             $reel->load(['shop', 'shop.translation', 'product', 'product.translation']);
+
+            // Format URL for the response
+            $imgHost = rtrim(config('app.img_host'), '/');
+            if ($reel->video_url && !str_starts_with($reel->video_url, 'http')) {
+                $path = ltrim($reel->video_url, '/');
+                if (!str_starts_with($path, 'storage/')) {
+                    $path = 'storage/' . $path;
+                }
+                $reel->video_url = $imgHost . '/' . $path;
+            }
 
             return $this->successResponse(
                 __('errors.' . ResponseError::RECORD_WAS_SUCCESSFULLY_UPDATED, locale: $this->language),

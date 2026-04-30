@@ -24,15 +24,15 @@ class UpdateRequest extends FormRequest
     public function rules()
     {
         return [
-            'shop_id' => 'sometimes|required|integer|exists:shops,id',
+            'shop_id' => 'sometimes|integer|exists:shops,id',
+            'product_id' => 'nullable|integer|exists:products,id',
+            'video' => 'nullable|file|mimes:mp4,mov,avi,wmv|max:51200',
             'video_url' => [
-                'sometimes',
-                'required',
+                'nullable',
                 'string',
                 'max:255',
                 function ($attribute, $value, $fail) {
-                    // Check if it's an MP4 file (basic URL validation)
-                    if (!str_contains(strtolower($value), '.mp4')) {
+                    if ($value && !str_contains(strtolower($value), '.mp4')) {
                         $fail('Only MP4 video files are allowed.');
                     }
                 }

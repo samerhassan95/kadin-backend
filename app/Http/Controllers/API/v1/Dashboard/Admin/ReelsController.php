@@ -66,8 +66,27 @@ class ReelsController extends AdminBaseController
     public function store(StoreRequest $request): JsonResponse
     {
         try {
-            $reel = Reel::create($request->validated());
+            $data = $request->validated();
+
+            // If a file is uploaded directly, handle the upload first
+            if ($request->hasFile('video')) {
+                $file = $request->file('video');
+                $path = $file->store('reels', 'public');
+                $data['video_url'] = $path; // Store the relative path in DB
+            }
+
+            $reel = Reel::create($data);
             $reel->load(['shop', 'shop.translation', 'product', 'product.translation']);
+
+            // Format URL for the response
+            $imgHost = rtrim(config('app.img_host'), '/');
+            if ($reel->video_url && !str_starts_with($reel->video_url, 'http')) {
+                $path = ltrim($reel->video_url, '/');
+                if (!str_starts_with($path, 'storage/')) {
+                    $path = 'storage/' . $path;
+                }
+                $reel->video_url = $imgHost . '/' . $path;
+            }
 
             return $this->successResponse(
                 __('errors.' . ResponseError::RECORD_WAS_SUCCESSFULLY_CREATED, locale: $this->language),
@@ -107,8 +126,26 @@ class ReelsController extends AdminBaseController
     public function update(UpdateRequest $request, Reel $reel): JsonResponse
     {
         try {
-            $reel->update($request->validated());
+            $data = $request->validated();
+
+            if ($request->hasFile('video')) {
+                $file = $request->file('video');
+                $path = $file->store('reels', 'public');
+                $data['video_url'] = $path;
+            }
+
+            $reel->update($data);
             $reel->load(['shop', 'shop.translation', 'product', 'product.translation']);
+
+            // Format URL for the response
+            $imgHost = rtrim(config('app.img_host'), '/');
+            if ($reel->video_url && !str_starts_with($reel->video_url, 'http')) {
+                $path = ltrim($reel->video_url, '/');
+                if (!str_starts_with($path, 'storage/')) {
+                    $path = 'storage/' . $path;
+                }
+                $reel->video_url = $imgHost . '/' . $path;
+            }
 
             return $this->successResponse(
                 __('errors.' . ResponseError::RECORD_WAS_SUCCESSFULLY_UPDATED, locale: $this->language),

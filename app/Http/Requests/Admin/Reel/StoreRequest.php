@@ -21,18 +21,17 @@ class StoreRequest extends FormRequest
      *
      * @return array
      */
-    public function rules()
-    {
         return [
             'shop_id' => 'required|integer|exists:shops,id',
             'product_id' => 'nullable|integer|exists:products,id',
+            'video' => 'nullable|file|mimes:mp4,mov,avi,wmv|max:51200',
             'video_url' => [
-                'required',
+                'required_without:video',
+                'nullable',
                 'string',
                 'max:255',
                 function ($attribute, $value, $fail) {
-                    // Check if it's an MP4 file (basic URL validation)
-                    if (!str_contains(strtolower($value), '.mp4')) {
+                    if ($value && !str_contains(strtolower($value), '.mp4')) {
                         $fail('Only MP4 video files are allowed.');
                     }
                 }
