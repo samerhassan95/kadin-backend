@@ -545,6 +545,33 @@ Route::get('admin-test', function() {
     }
 })->middleware(['sanctum.check']);
 
+// Cache management: clear all cached API GET responses (admin only)
+Route::post('v1/cache/clear', function () {
+    try {
+        // Flush only api_cache:* keys using the Cache facade
+        $cacheStore = Cache::getStore();
+
+        // For Redis/Memcached: use tags or prefix flush
+        // For file/database cache: scan and delete by prefix pattern
+        if (method_exists($cacheStore, 'flush')) {
+            // Simple approach: flush the entire cache
+            // (replace with tagged cache if you switch to Redis)
+            Cache::flush();
+        }
+
+        return response()->json([
+            'status'  => true,
+            'message' => 'API cache cleared successfully',
+            'timestamp' => now(),
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status'  => false,
+            'message' => $e->getMessage(),
+        ], 500);
+    }
+})->middleware(['sanctum.check', 'role:admin|manager']);
+
 // Admin API routes without middleware for testing
 Route::get('v1/dashboard/admin/dashboard/count', function() {
     return response()->json([
@@ -630,224 +657,7 @@ Route::get('languages-default', function() {
     ]);
 });
 
-Route::get('v1/rest/settings', function() {
-    return response()->json([
-        'timestamp' => now(),
-        'status' => true,
-        'message' => 'Successfully',
-        'data' => [
-            ['key' => 'title', 'value' => 'Kadin Marketplace'],
-            ['key' => 'currency_id', 'value' => '1'],
-            ['key' => 'system_lang', 'value' => 'en']
-        ]
-    ]);
-});
 
-// Additional API endpoints for web frontend
-Route::get('v1/rest/categories/paginate', function() {
-    return response()->json([
-        'timestamp' => now(),
-        'status' => true,
-        'message' => 'Successfully',
-        'data' => [],
-        'links' => [],
-        'meta' => [
-            'current_page' => 1,
-            'total' => 0
-        ]
-    ]);
-});
-
-// Working APIs without database for testing
-Route::get('v1/rest/currencies', function() {
-    return response()->json([
-        'timestamp' => now(),
-        'status' => true,
-        'message' => 'Successfully',
-        'data' => [
-            [
-                'id' => 1,
-                'title' => 'USD',
-                'symbol' => '$',
-                'rate' => 1,
-                'active' => 1,
-                'default' => 1
-            ],
-            [
-                'id' => 2,
-                'title' => 'EUR',
-                'symbol' => '€',
-                'rate' => 0.85,
-                'active' => 1,
-                'default' => 0
-            ]
-        ]
-    ]);
-});
-
-Route::get('v1/rest/categories/paginate', function() {
-    return response()->json([
-        'timestamp' => now(),
-        'status' => true,
-        'message' => 'Successfully',
-        'data' => [
-            [
-                'id' => 1,
-                'uuid' => 'cat-1',
-                'keywords' => 'electronics',
-                'parent_id' => null,
-                'type' => 'main',
-                'img' => '/img/categories/electronics.jpg',
-                'active' => 1,
-                'translation' => [
-                    'title' => 'Electronics',
-                    'description' => 'Electronic devices and gadgets'
-                ]
-            ]
-        ],
-        'links' => [],
-        'meta' => [
-            'current_page' => 1,
-            'total' => 1
-        ]
-    ]);
-});
-
-Route::get('v1/rest/brands/paginate', function() {
-    return response()->json([
-        'timestamp' => now(),
-        'status' => true,
-        'message' => 'Successfully',
-        'data' => [
-            [
-                'id' => 1,
-                'uuid' => 'brand-1',
-                'title' => 'Apple',
-                'img' => '/img/brands/apple.jpg',
-                'active' => 1
-            ]
-        ],
-        'links' => [],
-        'meta' => [
-            'current_page' => 1,
-            'total' => 1
-        ]
-    ]);
-});
-
-Route::get('v1/rest/banners/paginate', function() {
-    return response()->json([
-        'timestamp' => now(),
-        'status' => true,
-        'message' => 'Successfully',
-        'data' => [
-            [
-                'id' => 1,
-                'url' => '/products',
-                'img' => '/img/banners/banner1.jpg',
-                'active' => 1,
-                'type' => request('type', 'banner')
-            ]
-        ],
-        'links' => [],
-        'meta' => [
-            'current_page' => 1,
-            'total' => 1
-        ]
-    ]);
-});
-
-Route::get('v1/rest/stories/paginate', function() {
-    return response()->json([
-        'timestamp' => now(),
-        'status' => true,
-        'message' => 'Successfully',
-        'data' => [],
-        'links' => [],
-        'meta' => [
-            'current_page' => 1,
-            'total' => 0
-        ]
-    ]);
-});
-
-Route::get('v1/rest/shops/paginate', function() {
-    return response()->json([
-        'timestamp' => now(),
-        'status' => true,
-        'message' => 'Successfully',
-        'data' => [],
-        'links' => [],
-        'meta' => [
-            'current_page' => 1,
-            'total' => 0
-        ]
-    ]);
-});
-
-Route::get('v1/dashboard/user/profile/notifications-statistic', function() {
-    return response()->json([
-        'timestamp' => now(),
-        'status' => true,
-        'message' => 'Successfully',
-        'data' => [
-            'notification' => 0
-        ]
-    ]);
-});
-
-Route::get('v1/dashboard/user/profile/show', function() {
-    return response()->json([
-        'timestamp' => now(),
-        'status' => true,
-        'message' => 'Successfully',
-        'data' => null
-    ]);
-});
-
-Route::get('v1/dashboard/user/cart', function() {
-    return response()->json([
-        'timestamp' => now(),
-        'status' => true,
-        'message' => 'Successfully',
-        'data' => []
-    ]);
-});
-
-Route::get('v1/rest/products/paginate', function() {
-    return response()->json([
-        'timestamp' => now(),
-        'status' => true,
-        'message' => 'Successfully',
-        'data' => [
-            [
-                'id' => 1,
-                'uuid' => 'prod-1',
-                'keywords' => 'smartphone',
-                'category_id' => 1,
-                'shop_id' => 1,
-                'img' => '/img/products/phone1.jpg',
-                'active' => 1,
-                'translation' => [
-                    'title' => 'iPhone 15 Pro',
-                    'description' => 'Latest iPhone model'
-                ],
-                'stocks' => [
-                    [
-                        'id' => 1,
-                        'price' => 999,
-                        'quantity' => 10
-                    ]
-                ]
-            ]
-        ],
-        'links' => [],
-        'meta' => [
-            'current_page' => 1,
-            'total' => 1
-        ]
-    ]);
-});
 
 Route::group(['prefix' => 'v1', 'middleware' => ['block.ip']], function () {
     // Methods without AuthCheck

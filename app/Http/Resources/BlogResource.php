@@ -28,7 +28,7 @@ class BlogResource extends JsonResource
             'type'          => $this->type,
             'published_at'  => $this->when($this->published_at, $this->published_at . 'Z'),
             'active'        => (bool)$this->active,
-            'img'           => $this->when($this->img, $this->img),
+            'img'           => $this->img ? (str_starts_with((string)$this->img, 'http') ? $this->img : config('app.img_host') . $this->img) : null,
             'r_count'       => $this->when($this->r_count, $this->r_count),
             'r_avg'         => $this->when($this->r_avg, $this->r_avg),
             'r_sum'         => $this->when($this->r_sum, $this->r_sum),

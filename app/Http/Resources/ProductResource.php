@@ -40,7 +40,7 @@ class ProductResource extends JsonResource
             'active'        => (bool) $this->active,
             'visibility'    => (bool) $this->visibility,
             'digital'       => (bool) $this->digital,
-            'img'           => $this->when($this->img, $this->img),
+            'img'           => $this->img ? (str_starts_with((string)$this->img, 'http') ? $this->img : config('app.img_host') . $this->img) : null,
             'age_limit'     => $this->when($this->age_limit, $this->age_limit),
             'r_count'       => $this->when($this->r_count, $this->r_count),
             'r_avg'         => $this->when($this->r_avg, $this->r_avg),

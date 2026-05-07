@@ -25,7 +25,7 @@ class BannerResource extends JsonResource
         return [
             'id'            => (int)$this->id,
             'url'           => $this->url,
-            'img'           => $this->img,
+            'img'           => $this->img ? (str_starts_with((string)$this->img, 'http') ? $this->img : config('app.img_host') . $this->img) : null,
             'active'        => $this->active,
             'clickable'     => $this->clickable,
             'type'          => $this->type,

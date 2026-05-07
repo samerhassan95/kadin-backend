@@ -24,7 +24,7 @@ class BrandResource extends JsonResource
             'slug'              => $this->when($this->slug,  $this->slug),
             'uuid'              => $this->when($this->uuid,  $this->uuid),
             'title'             => $this->when($this->title, $this->title),
-            'img'               => $this->when($this->img, $this->img),
+            'img'               => $this->img ? (str_starts_with((string)$this->img, 'http') ? $this->img : config('app.img_host') . $this->img) : null,
             'shop_id'           => $this->when($this->shop_id, $this->shop_id),
             'products_count'    => $this->when($this->products_count, $this->products_count),
             'created_at'        => $this->when($this->created_at, $this->created_at?->format('Y-m-d H:i:s') . 'Z'),

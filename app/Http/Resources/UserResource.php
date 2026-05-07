@@ -40,7 +40,7 @@ class UserResource extends JsonResource
             'birthday'          => $this->when($this->birthday, $this->birthday?->format('Y-m-d H:i:s') . 'Z'),
             'gender'            => $this->when($this->gender, $this->gender),
             'active'            => (boolean)$this->active,
-            'img'               => $this->when($this->img, $this->img),
+            'img'               => $this->img ? (str_starts_with((string)$this->img, 'http') ? $this->img : config('app.img_host') . $this->img) : null,
             'referral'          => $this->when($this->referral, $this->referral),
             'my_referral'       => $this->when($this->my_referral, $this->my_referral),
             'role'              => $this->when($role, $role),

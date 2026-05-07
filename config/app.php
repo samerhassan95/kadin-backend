@@ -74,7 +74,7 @@ return [
     |
     */
 
-    'img_host'  => env('IMG_HOST', env('APP_URL') . '/storage/'),
+    'img_host'  => 'http://localhost:8005/storage/',
 
     /*
     |--------------------------------------------------------------------------

@@ -5,6 +5,7 @@ namespace App\Http;
 
 use App\Http\Middleware\Authenticate;
 use App\Http\Middleware\BlockIpMiddleware;
+use App\Http\Middleware\CacheApiResponse;
 use App\Http\Middleware\CheckParentSeller;
 use App\Http\Middleware\CheckSellerShop;
 use App\Http\Middleware\EncryptCookies;
@@ -73,6 +74,7 @@ class Kernel extends HttpKernel
             'throttle:5000,1',
             SubstituteBindings::class,
             TrustLicence::class,
+            CacheApiResponse::class,
         ],
         'sessions' => [
             StartSession::class,
@@ -102,5 +104,6 @@ class Kernel extends HttpKernel
         'role'                  => RoleMiddleware::class,
         'check.shop'            => CheckSellerShop::class,
         'check.parentSeller'    => CheckParentSeller::class,
+        'api.cache'             => CacheApiResponse::class,
     ];
 }
