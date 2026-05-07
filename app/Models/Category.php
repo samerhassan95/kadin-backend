@@ -116,6 +116,17 @@ class Category extends Model
         'updated_at' => 'datetime:Y-m-d H:i:s',
     ];
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function ($category) {
+            $category->translations()->delete();
+            $category->metaTags()->delete();
+            $category->galleries()->delete();
+        });
+    }
+
     public function translations(): HasMany
     {
         return $this->hasMany(CategoryTranslation::class);

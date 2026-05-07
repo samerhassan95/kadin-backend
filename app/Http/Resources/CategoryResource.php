@@ -31,7 +31,7 @@ class CategoryResource extends JsonResource
             'age_limit'         => $this->when($this->age_limit, $this->age_limit),
             'input'             => $this->when($this->input, $this->input),
             'shop_id'           => $this->when($this->shop_id, $this->shop_id),
-            'img'               => $this->img,
+            'img'               => $this->img ? (str_starts_with($this->img, 'http') ? $this->img : config('app.img_host') . $this->img) : null,
             'active'            => (bool) $this->active,
             'status'            => $this->when($this->status, $this->status),
             'created_at'        => $this->when($this->created_at, $this->created_at?->format('Y-m-d H:i:s') . 'Z'),

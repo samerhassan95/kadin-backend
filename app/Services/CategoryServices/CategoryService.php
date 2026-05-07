@@ -206,7 +206,8 @@ class CategoryService extends CoreService
                 }
 
                 $category->delete();
-            } catch (Throwable) {
+            } catch (Throwable $e) {
+                \Log::error('Delete Failed for Category ' . $category->id . ': ' . $e->getMessage());
                 $hasChildren++;
                 continue;
             }

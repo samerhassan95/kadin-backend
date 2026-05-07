@@ -44,6 +44,14 @@ class Gallery extends Model
     use HasFactory;
 
     protected $guarded = ['id'];
+    
+    public function getPathAttribute($value): ?string
+    {
+        if (!$value || str_starts_with($value, 'http')) {
+            return $value;
+        }
+        return config('app.img_host') . $value;
+    }
 
     public $timestamps = false;
 
