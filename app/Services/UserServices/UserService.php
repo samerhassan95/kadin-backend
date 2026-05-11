@@ -80,6 +80,20 @@ class UserService extends CoreService
                 'code'   => ResponseError::NO_ERROR,
                 'data'   => $user->loadMissing(['invitations', 'roles'])
             ];
+        } catch (\Illuminate\Database\QueryException $e) {
+            $message = $e->getMessage();
+            if ($e->errorInfo[1] == 1062) {
+                if (str_contains($message, 'users_phone_unique')) {
+                    $message = 'هذا الرقم مسجل بالفعل، يرجى استخدام رقم آخر أو تسجيل الدخول.';
+                } elseif (str_contains($message, 'users_email_unique')) {
+                    $message = 'هذا البريد الإلكتروني مسجل بالفعل، يرجى استخدام بريد آخر.';
+                } else {
+                    $message = 'هذا الحساب موجود بالفعل.';
+                }
+            } else {
+                $message = 'حدث خطأ في قاعدة البيانات.';
+            }
+            return ['status' => false, 'code' => ResponseError::ERROR_400, 'message' => $message];
         } catch (Exception $e) {
             return ['status' => false, 'code' => ResponseError::ERROR_400, 'message' => $e->getMessage()];
         }
@@ -190,6 +204,20 @@ class UserService extends CoreService
                 'code'      => ResponseError::NO_ERROR,
                 'data'      => $user
             ];
+        } catch (\Illuminate\Database\QueryException $e) {
+            $message = $e->getMessage();
+            if ($e->errorInfo[1] == 1062) {
+                if (str_contains($message, 'users_phone_unique')) {
+                    $message = 'هذا الرقم مسجل بالفعل، يرجى استخدام رقم آخر أو تسجيل الدخول.';
+                } elseif (str_contains($message, 'users_email_unique')) {
+                    $message = 'هذا البريد الإلكتروني مسجل بالفعل، يرجى استخدام بريد آخر.';
+                } else {
+                    $message = 'هذا الحساب موجود بالفعل.';
+                }
+            } else {
+                $message = 'حدث خطأ في قاعدة البيانات.';
+            }
+            return ['status' => false, 'code' => ResponseError::ERROR_400, 'message' => $message];
         } catch (Exception $e) {
             return ['status' => false, 'code' => ResponseError::ERROR_400, 'message' => $e->getMessage()];
         }
