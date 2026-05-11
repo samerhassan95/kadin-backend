@@ -14,6 +14,7 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
 use Spatie\Permission\Models\Role;
+use Illuminate\Database\QueryException;
 use Throwable;
 
 class AuthByMobilePhone extends CoreService
@@ -114,6 +115,8 @@ class AuthByMobilePhone extends CoreService
                         'gender'            => data_get($data, 'gender'),
                         'password'          => bcrypt(data_get($data, 'password', 'password')),
                     ]);
+            } catch (QueryException $e) {
+                return $this->handleQueryException($e);
             } catch (Throwable $e) {
                 $this->error($e);
                 return $this->onErrorResponse([

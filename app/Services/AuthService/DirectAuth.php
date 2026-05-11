@@ -9,7 +9,9 @@ use App\Services\UserServices\UserWalletService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
+use Illuminate\Database\QueryException;
 use App\Http\Resources\UserResource;
+use App\Helpers\ResponseError;
 
 class DirectAuth extends CoreService
 {
@@ -69,6 +71,8 @@ class DirectAuth extends CoreService
                 'user'          => UserResource::make($user->load(['roles', 'wallet'])),
             ]);
 
+        } catch (QueryException $e) {
+            return $this->handleQueryException($e);
         } catch (\Exception $e) {
             return $this->onErrorResponse([
                 'code'    => 400,

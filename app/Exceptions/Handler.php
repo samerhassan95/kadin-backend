@@ -14,6 +14,7 @@ use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Exception\RouteNotFoundException;
+use Illuminate\Database\QueryException;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -89,9 +90,20 @@ class Handler extends ExceptionHandler
             return $this->onErrorResponse(['code' => ResponseError::ERROR_400, 'data' => $items]);
         }
 
+        if ($exception instanceof QueryException) {
+            return $this->handleQueryException($exception);
+        }
+
+        $message = $exception->getMessage();
+        
+        // Hide SQL details if they somehow leak through other exceptions
+        if (str_contains($message, 'SQLSTATE')) {
+            $message = 'A database error occurred. Please try again later.';
+        }
+
         return $this->errorResponse(
             '500',
-            $exception->getMessage().' in '.$exception->getFile().":".$exception->getLine()
+            $message
         );
     }
 

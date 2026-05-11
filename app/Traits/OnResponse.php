@@ -35,4 +35,33 @@ trait OnResponse
             (int)$http
         );
     }
+
+    /**
+     * @param \Illuminate\Database\QueryException $exception
+     * @return JsonResponse
+     */
+    public function handleQueryException(\Illuminate\Database\QueryException $exception): JsonResponse
+    {
+        if ($exception->errorInfo[1] == 1062) {
+            $message = $exception->getMessage();
+            if (str_contains($message, 'users_phone_unique')) {
+                return $this->onErrorResponse([
+                    'code' => ResponseError::ERROR_400,
+                    'message' => 'هذا الرقم مسجل بالفعل، يرجى استخدام رقم آخر أو تسجيل الدخول.'
+                ]);
+            }
+            if (str_contains($message, 'users_email_unique')) {
+                return $this->onErrorResponse([
+                    'code' => ResponseError::ERROR_400,
+                    'message' => 'هذا البريد الإلكتروني مسجل بالفعل، يرجى استخدام بريد آخر.'
+                ]);
+            }
+            return $this->onErrorResponse(['code' => ResponseError::ERROR_106]);
+        }
+
+        return $this->onErrorResponse([
+            'code' => ResponseError::ERROR_400,
+            'message' => 'حدث خطأ في قاعدة البيانات.'
+        ]);
+    }
 }
