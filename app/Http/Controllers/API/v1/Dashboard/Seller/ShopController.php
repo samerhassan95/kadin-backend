@@ -60,6 +60,10 @@ class ShopController extends SellerBaseController
     {
         $locale = Language::languagesList()->where('default', 1)->first()?->locale;
 
+        if (empty($this->shop)) {
+            return $this->onErrorResponse(['code' => ResponseError::ERROR_404]);
+        }
+
         $shop = $this->shopRepository->shopDetails($this->shop->uuid);
 
         if (empty($shop)) {
@@ -98,6 +102,10 @@ class ShopController extends SellerBaseController
      */
     public function shopUpdate(StoreRequest $request): JsonResponse
     {
+        if (empty($this->shop)) {
+            return $this->onErrorResponse(['code' => ResponseError::ERROR_404]);
+        }
+
         $result = $this->shopService->update($this->shop->uuid, $request->all());
 
         if (!data_get($result, 'status')) {
@@ -116,6 +124,10 @@ class ShopController extends SellerBaseController
      */
     public function setWorkingStatus(): JsonResponse
     {
+        if (empty($this->shop)) {
+            return $this->onErrorResponse(['code' => ResponseError::ERROR_404]);
+        }
+
         (new ShopActivityService)->changeOpenStatus($this->shop->uuid);
 
         return $this->successResponse(
