@@ -21,6 +21,8 @@ class FileHelper
         'gif',
     ];
 
+    private static $awsSettings = null;
+
     /**
      * Upload file function
      * @param UploadedFile $file
@@ -30,30 +32,27 @@ class FileHelper
     public static function uploadFile(UploadedFile $file, string $path): array
     {
         try {
-            $isAws = Settings::where('key', 'aws')->first();
+            if (self::$awsSettings === null) {
+                self::$awsSettings = Settings::where('key', 'aws')->first();
+            }
 
             $options = [];
 
-            if (data_get($isAws, 'value')) {
+            if (data_get(self::$awsSettings, 'value')) {
                 $options = ['disk' => 's3'];
             }
 
-            $id  = auth('sanctum')->id() ?? "0001";
+            $id = auth('sanctum')->id() ?? "0001";
 
-            $ext  = strtolower($file->getClientOriginalExtension());
-
-            $dir  = $ext;
+            $originalExt = strtolower($file->getClientOriginalExtension());
+            $ext = $originalExt;
+            $dir = $ext;
 
             if (in_array($ext, self::imageExtensions)) {
-
-                $dir  = 'images';
-
-                $ext = strtolower(
-                    preg_replace("#.+\.([a-z]+)$#i", "$1",
-                        str_replace(self::imageExtensions, '.webp', $file->getClientOriginalName())
-                    )
-                );
-
+                $dir = 'images';
+                // Only rename the extension to webp if it's an image, 
+                // but keep the original logic if it's required by the system
+                $ext = 'webp'; 
             }
 
             $time = time() . mt_rand(1000, 9999);
@@ -67,20 +66,13 @@ class FileHelper
             return [
                 'status' => true,
                 'code'   => ResponseError::NO_ERROR,
-                'data'   => $relativePath  // Return: mp4/other/filename.mp4 or images/other/filename.mp4
+                'data'   => $relativePath
             ];
         } catch (Throwable $e) {
-
-            $message = $e->getMessage();
-
-            if ($message === "Class \"finfo\" not found") {
-                $message = 'You need on php file info extension';
-            }
-
             return [
                 'status'  => false,
                 'code'    => ResponseError::ERROR_400,
-                'message' => $message
+                'message' => $e->getMessage() === "Class \"finfo\" not found" ? 'You need on php file info extension' : $e->getMessage()
             ];
         }
     }

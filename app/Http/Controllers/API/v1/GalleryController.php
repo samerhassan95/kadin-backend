@@ -147,29 +147,25 @@ class GalleryController extends Controller
             return $this->onErrorResponse(['code' => ResponseError::ERROR_404]);
         }
 
-        $images = $request->file(['images']);
-        $result = [];
+        $images = (array)$request->file('images');
+        $titles = [];
+        $type   = $request->input('type', Gallery::OTHER);
 
         foreach ($images as $image) {
-            $result[] = FileHelper::uploadFile($image, $request->input('type', Gallery::OTHER));
-        }
+            $uploadResult = FileHelper::uploadFile($image, $type);
 
-        $titles = [];
-
-        foreach ($result as $item) {
-
-            if (!data_get($item, 'status')) {
-                return $this->onErrorResponse($result);
+            if (!data_get($uploadResult, 'status')) {
+                return $this->onErrorResponse($uploadResult);
             }
 
-            $titles[] = data_get($item, 'data');
+            $titles[] = data_get($uploadResult, 'data');
         }
 
         return $this->successResponse(
             __('errors.' . ResponseError::NO_ERROR, locale: $this->language),
             [
                 'title' => $titles,
-                'type'  => $request->input('type')
+                'type'  => $type
             ]
         );
     }
