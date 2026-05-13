@@ -193,10 +193,22 @@ class CategoryService extends CoreService
     {
         $hasChildren = 0;
 
+        $ids = is_array($ids) ? $ids : [];
+
         $categories = Category::with('children')
             ->when($shopId, fn($q) => $q->where('shop_id', $shopId))
-            ->whereIn('id', is_array($ids) ? $ids : [])
+            ->whereIn('id', $ids)
             ->get();
+
+        // If the seller provided IDs but none were found under their shop,
+        // the category is global/admin-owned — do NOT return a false success.
+        if ($shopId && $categories->isEmpty() && count($ids) > 0) {
+            return [
+                'status' => true,
+                'code'   => ResponseError::NO_ERROR,
+                'data'   => count($ids), // triggers the "can't delete" error in controller
+            ];
+        }
 
         foreach ($categories as $category) {
 

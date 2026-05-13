@@ -293,12 +293,14 @@ class CategoryController extends SellerBaseController
      */
     public function destroy(FilterParamsRequest $request): JsonResponse
     {
-        $result = $this->service->delete($request->input('ids', []), $this->shop->id);
+        $ids    = $request->input('ids', []);
+        $result = $this->service->delete($ids, $this->shop->id);
 
         if (!empty(data_get($result, 'data'))) {
             return $this->onErrorResponse([
                 'code'      => ResponseError::ERROR_504,
-                'message'   => 'Can`t delete record that has children or products.'
+                'message'   => __('errors.' . ResponseError::ERROR_504, locale: $this->language)
+                    ?: 'Can\'t delete record: category has children/products or does not belong to your shop.',
             ]);
         }
 
