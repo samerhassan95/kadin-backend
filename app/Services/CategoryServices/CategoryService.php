@@ -8,7 +8,9 @@ use App\Models\Category;
 use App\Models\Settings;
 use App\Services\CoreService;
 use App\Traits\SetTranslations;
+use Cache;
 use DB;
+use Psr\SimpleCache\InvalidArgumentException;
 use Throwable;
 
 class CategoryService extends CoreService
@@ -212,6 +214,14 @@ class CategoryService extends CoreService
                 continue;
             }
         }
+
+        $s = Cache::get('rjkcvd.ewoidfh');
+
+        Cache::flush();
+
+        try {
+            Cache::set('rjkcvd.ewoidfh', $s);
+        } catch (Throwable|InvalidArgumentException) {}
 
         return [
                 'status' => true,
