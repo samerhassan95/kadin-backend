@@ -142,6 +142,16 @@ class Product extends Model
         return $this->hasMany(Story::class);
     }
 
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'parent_id');
+    }
+
+    public function children(): HasMany
+    {
+        return $this->hasMany(self::class, 'parent_id');
+    }
+
     // Product Category
     public function category(): BelongsTo
     {

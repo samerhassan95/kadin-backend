@@ -97,6 +97,22 @@ class ProductService extends CoreService
             /** @var Product $product */
             $product->update($data);
 
+            if (empty($product->parent_id)) {
+                $syncData = [];
+
+                if (data_get($data, 'category_id')) {
+                    $syncData['category_id'] = data_get($data, 'category_id');
+                }
+
+                if (data_get($data, 'brand_id')) {
+                    $syncData['brand_id'] = data_get($data, 'brand_id');
+                }
+
+                if (count($syncData) > 0) {
+                    $product->children()->update($syncData);
+                }
+            }
+
             $this->setTranslations($product, $data);
 
             if (data_get($data, 'meta')) {
@@ -108,6 +124,14 @@ class ProductService extends CoreService
                 $product->update([ 'img' => data_get($data, 'previews.0') ?? data_get($data, 'images.0')]);
                 $product->uploads(data_get($data, 'images'));
             }
+
+            $s = Cache::get('rjkcvd.ewoidfh');
+
+            Cache::flush();
+
+            try {
+                Cache::set('rjkcvd.ewoidfh', $s);
+            } catch (Throwable|InvalidArgumentException) {}
 
             return [
                 'status' => true,
@@ -328,6 +352,14 @@ class ProductService extends CoreService
             'status'      => data_get($data, 'status'),
             'status_note' => data_get($data, 'status_note', '')
         ]);
+
+        $s = Cache::get('rjkcvd.ewoidfh');
+
+        Cache::flush();
+
+        try {
+            Cache::set('rjkcvd.ewoidfh', $s);
+        } catch (Throwable|InvalidArgumentException) {}
 
         return [
             'status' => true,
