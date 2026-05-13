@@ -195,7 +195,8 @@ class CategoryService extends CoreService
 
         $ids = is_array($ids) ? $ids : [];
 
-        $categories = Category::with('children')
+        $categories = Category::withCount('children')
+            ->with('children')
             ->when($shopId, fn($q) => $q->where('shop_id', $shopId))
             ->whereIn('id', $ids)
             ->get();
@@ -203,10 +204,14 @@ class CategoryService extends CoreService
         // If the seller provided IDs but none were found under their shop,
         // the category is global/admin-owned — do NOT return a false success.
         if ($shopId && $categories->isEmpty() && count($ids) > 0) {
+            \Log::warning('CategoryService::delete — seller tried to delete category not in their shop', [
+                'shop_id' => $shopId,
+                'ids'     => $ids,
+            ]);
             return [
                 'status' => true,
                 'code'   => ResponseError::NO_ERROR,
-                'data'   => count($ids), // triggers the "can't delete" error in controller
+                'data'   => count($ids),
             ];
         }
 
@@ -214,14 +219,22 @@ class CategoryService extends CoreService
 
             /** @var Category $category */
             try {
-                if (count($category->children) > 0) {
+                if ($category->children_count > 0) {
+                    \Log::warning('CategoryService::delete — category has children, skipping', [
+                        'category_id'    => $category->id,
+                        'children_count' => $category->children_count,
+                        'children_ids'   => $category->children->pluck('id'),
+                    ]);
                     $hasChildren++;
                     continue;
                 }
 
                 $category->delete();
             } catch (Throwable $e) {
-                \Log::error('Delete Failed for Category ' . $category->id . ': ' . $e->getMessage());
+                \Log::error('CategoryService::delete — DB exception when deleting category', [
+                    'category_id' => $category->id,
+                    'error'       => $e->getMessage(),
+                ]);
                 $hasChildren++;
                 continue;
             }
