@@ -12,6 +12,8 @@ use App\Services\CoreService;
 use App\Traits\SetTranslations;
 use DB;
 use Exception;
+use Illuminate\Support\Facades\Cache;
+use Psr\SimpleCache\InvalidArgumentException;
 use Str;
 use Throwable;
 
