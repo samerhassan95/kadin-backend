@@ -71,13 +71,13 @@ class Like extends Model
                     $shopIds = $this->getShopIds($filter);
 
                     return $query
-                        ->when($type === Product::class, function ($query) use ($shopIds) {
+                        ->when($type === Product::class && count($shopIds) > 0, function ($query) use ($shopIds) {
                             $query->whereIn('shop_id', $shopIds);
                         })
-                        ->when($type === Shop::class, function ($query) use ($shopIds) {
+                        ->when($type === Shop::class && count($shopIds) > 0, function ($query) use ($shopIds) {
                             $query->whereIn('id', $shopIds);
                         })
-                        ->when($type === Banner::class, function ($query) use ($shopIds) {
+                        ->when($type === Banner::class && count($shopIds) > 0, function ($query) use ($shopIds) {
                             $query->whereHas('products', fn($q) => $q->whereIn('shop_id', $shopIds));
                         });
 
@@ -89,11 +89,7 @@ class Like extends Model
                 $q->where('likable_id', $typeId);
 
             })
-            ->when(data_get($filter, 'type_id'), function($q, $typeId) {
 
-                $q->where('likable_id', $typeId);
-
-            })
             ->when(data_get($filter, 'user_id'), fn($q, $userId) => $q->where('user_id', $userId));
     }
 }
