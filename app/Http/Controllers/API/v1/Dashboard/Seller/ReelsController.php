@@ -37,6 +37,9 @@ class ReelsController extends SellerBaseController
 
         $lang = $request->input('lang', 'en');
         $imgHost = rtrim(config('app.img_host'), '/');
+        if (str_ends_with($imgHost, 'storage')) {
+            $imgHost = rtrim(substr($imgHost, 0, -7), '/');
+        }
 
         $items = $reels->map(function ($reel) use ($lang, $imgHost) {
             $videoUrl = $reel->video_url;
@@ -134,6 +137,9 @@ class ReelsController extends SellerBaseController
 
             // Format URL for the response
             $imgHost = rtrim(config('app.img_host'), '/');
+            if (str_ends_with($imgHost, 'storage')) {
+                $imgHost = rtrim(substr($imgHost, 0, -7), '/');
+            }
             if ($reel->video_url && !str_starts_with($reel->video_url, 'http')) {
                 $path = ltrim($reel->video_url, '/');
                 if (!str_starts_with($path, 'storage/')) {
@@ -205,6 +211,9 @@ class ReelsController extends SellerBaseController
 
             // Format URL for the response
             $imgHost = rtrim(config('app.img_host'), '/');
+            if (str_ends_with($imgHost, 'storage')) {
+                $imgHost = rtrim(substr($imgHost, 0, -7), '/');
+            }
             if ($reel->video_url && !str_starts_with($reel->video_url, 'http')) {
                 $path = ltrim($reel->video_url, '/');
                 if (!str_starts_with($path, 'storage/')) {
