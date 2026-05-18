@@ -166,6 +166,7 @@ class FilterRepository extends CoreRepository
                     ];
                 }
 
+                if ($brand?->id && $brand?->title) {
                     $brands[$brand->id] = [
                         'id'    => $brand->id,
                         'slug'  => $brand->slug,
@@ -173,6 +174,7 @@ class FilterRepository extends CoreRepository
                         'title' => $brand->title,
                     ];
                 }
+
 
                 if ($category?->id && $category?->translation?->title) {
                     $categories[$category->id] = [
