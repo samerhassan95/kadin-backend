@@ -26,7 +26,8 @@ class CountryResource extends JsonResource
             'code'          => $this->code,
             'active'        => (bool)$this->active,
             'region_id'     => $this->when($this->region_id, $this->region_id),
-            'img'           => $this->when($this->img, $this->img),
+            'img'           => $this->img ? (str_starts_with($this->img, 'http') ? $this->img : asset('storage/' . $this->img)) : null,
+
             'cities_count'  => $this->when($this->cities_count, $this->cities_count),
 
             // Relations
