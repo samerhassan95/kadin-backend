@@ -38,14 +38,11 @@ class Controller extends BaseController
         );
     }
 
-    /**
-     * Set default Language
-     */
     protected function setLanguage(): ?string
     {
-        return request(
-            'lang',
-            Language::languagesList()->where('default', 1)->first()?->locale
-        );
+        $lang = request('lang') ?? request()->header('lang');
+
+        return $lang ?: Language::languagesList()->where('default', 1)->first()?->locale;
     }
+
 }

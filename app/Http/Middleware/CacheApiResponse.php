@@ -64,10 +64,10 @@ class CacheApiResponse
             }
         }
 
-        // Build a unique cache key from method + full URL (including query string)
-        $cacheKey = 'api_cache:' . md5($request->method() . '|' . $request->fullUrl());
+        // Build a unique cache key from method + full URL (including query string) + language
+        $lang = $request->input('lang') ?? $request->header('lang') ?? 'default';
+        $cacheKey = 'api_cache:' . md5($request->method() . '|' . $request->fullUrl() . '|' . $lang);
 
-        // Return cached response if available
         if (Cache::has($cacheKey)) {
             $cached = Cache::get($cacheKey);
             return response($cached['content'], $cached['status'])
