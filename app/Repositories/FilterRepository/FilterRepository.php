@@ -166,11 +166,10 @@ class FilterRepository extends CoreRepository
                     ];
                 }
 
-                if ($brand?->id && $brand?->title) {
                     $brands[$brand->id] = [
                         'id'    => $brand->id,
                         'slug'  => $brand->slug,
-                        'img'   => $brand->img,
+                        'img'   => $brand->img ? (str_starts_with($brand->img, 'http') ? $brand->img : asset('storage/' . $brand->img)) : null,
                         'title' => $brand->title,
                     ];
                 }
@@ -179,10 +178,11 @@ class FilterRepository extends CoreRepository
                     $categories[$category->id] = [
                         'id'    => $category->id,
                         'slug'  => $category->slug,
-                        'img'   => $category->img,
+                        'img'   => $category->img ? (str_starts_with($category->img, 'http') ? $category->img : asset('storage/' . $category->img)) : null,
                         'title' => $category->translation->title
                     ];
                 }
+
 
                 foreach ($stocks as $stock) {
 
