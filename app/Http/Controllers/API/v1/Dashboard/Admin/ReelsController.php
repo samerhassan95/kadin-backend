@@ -29,6 +29,9 @@ class ReelsController extends AdminBaseController
             ->paginate($request->input('perPage', 15));
 
         $imgHost = rtrim(config('app.img_host'), '/');
+        if (str_ends_with($imgHost, 'storage')) {
+            $imgHost = rtrim(substr($imgHost, 0, -7), '/');
+        }
 
         $items = $reels->map(function ($reel) use ($imgHost) {
             $videoUrl = $reel->video_url;
@@ -80,6 +83,9 @@ class ReelsController extends AdminBaseController
 
             // Format URL for the response
             $imgHost = rtrim(config('app.img_host'), '/');
+            if (str_ends_with($imgHost, 'storage')) {
+                $imgHost = rtrim(substr($imgHost, 0, -7), '/');
+            }
             if ($reel->video_url && !str_starts_with($reel->video_url, 'http')) {
                 $path = ltrim($reel->video_url, '/');
                 if (!str_starts_with($path, 'storage/')) {
@@ -139,6 +145,9 @@ class ReelsController extends AdminBaseController
 
             // Format URL for the response
             $imgHost = rtrim(config('app.img_host'), '/');
+            if (str_ends_with($imgHost, 'storage')) {
+                $imgHost = rtrim(substr($imgHost, 0, -7), '/');
+            }
             if ($reel->video_url && !str_starts_with($reel->video_url, 'http')) {
                 $path = ltrim($reel->video_url, '/');
                 if (!str_starts_with($path, 'storage/')) {

@@ -49,11 +49,15 @@ class ReelsController extends RestBaseController
             foreach ($reels as $reel) {
                 $videoUrl = $reel->video_url;
                 if ($videoUrl && !str_starts_with($videoUrl, 'http')) {
+                    $imgHost = rtrim(config('app.img_host'), '/');
+                    if (str_ends_with($imgHost, 'storage')) {
+                        $imgHost = rtrim(substr($imgHost, 0, -7), '/');
+                    }
                     $path = ltrim($videoUrl, '/');
                     if (!str_starts_with($path, 'storage/')) {
                         $path = 'storage/' . $path;
                     }
-                    $videoUrl = rtrim(config('app.img_host'), '/') . '/' . $path;
+                    $videoUrl = $imgHost . '/' . $path;
                 }
 
                 $reelData = [
@@ -88,16 +92,24 @@ class ReelsController extends RestBaseController
                         'background_img' => (function() use ($reel) {
                             $img = $reel->shop->background_img;
                             if (!$img || str_starts_with($img, 'http')) return $img;
+                            $imgHost = rtrim(config('app.img_host'), '/');
+                            if (str_ends_with($imgHost, 'storage')) {
+                                $imgHost = rtrim(substr($imgHost, 0, -7), '/');
+                            }
                             $path = ltrim($img, '/');
                             if (!str_starts_with($path, 'storage/')) $path = 'storage/' . $path;
-                            return rtrim(config('app.img_host'), '/') . '/' . $path;
+                            return $imgHost . '/' . $path;
                         })(),
                         'logo_img' => (function() use ($reel) {
                             $img = $reel->shop->logo_img;
                             if (!$img || str_starts_with($img, 'http')) return $img;
+                            $imgHost = rtrim(config('app.img_host'), '/');
+                            if (str_ends_with($imgHost, 'storage')) {
+                                $imgHost = rtrim(substr($imgHost, 0, -7), '/');
+                            }
                             $path = ltrim($img, '/');
                             if (!str_starts_with($path, 'storage/')) $path = 'storage/' . $path;
-                            return rtrim(config('app.img_host'), '/') . '/' . $path;
+                            return $imgHost . '/' . $path;
                         })(),
                         'min_amount' => (float) $reel->shop->min_amount,
                         'status' => $reel->shop->status,
