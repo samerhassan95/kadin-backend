@@ -113,17 +113,37 @@ class StoryRepository extends CoreRepository
                 continue;
             }
 
+            $imgHost = rtrim(config('app.img_host'), '/');
+            if (str_ends_with($imgHost, 'storage')) {
+                $imgHost = rtrim(substr($imgHost, 0, -7), '/');
+            }
+
             foreach ($shopStories->file_urls as $fileUrl) {
 
                 $shopsStoriesTitle  = $shopStories?->shop?->translation?->title;
                 $productTitle       = $product?->translation?->title;
                 $createdAt          = $shopStories?->created_at;
                 $updatedAt          = $shopStories?->updated_at;
+                
+                // Format file_urls
+                if ($fileUrl && !str_starts_with($fileUrl, 'http')) {
+                    $path = ltrim($fileUrl, '/');
+                    if (!str_starts_with($path, 'storage/')) $path = 'storage/' . $path;
+                    $fileUrl = $imgHost . '/' . $path;
+                }
+                
+                // Format logo_img
+                $logoImg = $shopStories->shop->logo_img;
+                if ($logoImg && !str_starts_with($logoImg, 'http')) {
+                    $path = ltrim($logoImg, '/');
+                    if (!str_starts_with($path, 'storage/')) $path = 'storage/' . $path;
+                    $logoImg = $imgHost . '/' . $path;
+                }
 
                 $shops[$shopStories->shop_id][] = [
                     'shop_id'       => $shopStories->shop_id,
                     'shop_uuid'     => $shopStories?->shop?->uuid,
-                    'logo_img'      => $shopStories->shop->logo_img,
+                    'logo_img'      => $logoImg,
                     'title'         => $shopsStoriesTitle,
                     'firstname'     => $shopStories->shop->seller?->firstname,
                     'lastname'      => $shopStories->shop->seller?->lastname,
