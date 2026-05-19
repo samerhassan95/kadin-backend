@@ -20,7 +20,19 @@ class StoryResource extends JsonResource
         /** @var Story|JsonResource $this */
         return [
             'id'            => $this->when($this->id, $this->id),
-            'file_urls'     => $this->when($this->file_urls, $this->file_urls),
+            'file_urls'     => $this->when($this->file_urls, function () {
+                $imgHost = rtrim(config('app.img_host'), '/');
+                if (str_ends_with($imgHost, 'storage')) {
+                    $imgHost = rtrim(substr($imgHost, 0, -7), '/');
+                }
+                
+                return array_map(function ($url) use ($imgHost) {
+                    if (!$url || str_starts_with($url, 'http')) return $url;
+                    $path = ltrim($url, '/');
+                    if (!str_starts_with($path, 'storage/')) $path = 'storage/' . $path;
+                    return $imgHost . '/' . $path;
+                }, $this->file_urls);
+            }),
             'created_at'    => $this->when($this->created_at, $this->created_at?->format('Y-m-d H:i:s') . 'Z'),
             'updated_at'    => $this->when($this->updated_at, $this->updated_at?->format('Y-m-d H:i:s') . 'Z'),
 
