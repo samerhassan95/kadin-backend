@@ -40,7 +40,7 @@ class TranslationSeeder extends Seeder
 
         foreach ($translations as $translation) {
             try {
-                Translation::firstOrCreate([
+                Translation::updateOrCreate([
                     'locale'    => $translation['locale'],
                     'group'     => $translation['group'],
                     'key'       => $translation['key'],
