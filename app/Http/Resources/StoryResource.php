@@ -33,6 +33,21 @@ class StoryResource extends JsonResource
                     return $imgHost . '/' . $path;
                 }, $this->file_urls);
             }),
+            'img'           => $this->when($this->file_urls, function () {
+                $urls = $this->file_urls;
+                if (empty($urls)) return null;
+                $url = is_array($urls) ? $urls[0] : $urls;
+                
+                $imgHost = rtrim(config('app.img_host'), '/');
+                if (str_ends_with($imgHost, 'storage')) {
+                    $imgHost = rtrim(substr($imgHost, 0, -7), '/');
+                }
+                
+                if (!$url || str_starts_with($url, 'http')) return $url;
+                $path = ltrim($url, '/');
+                if (!str_starts_with($path, 'storage/')) $path = 'storage/' . $path;
+                return $imgHost . '/' . $path;
+            }),
             'created_at'    => $this->when($this->created_at, $this->created_at?->format('Y-m-d H:i:s') . 'Z'),
             'updated_at'    => $this->when($this->updated_at, $this->updated_at?->format('Y-m-d H:i:s') . 'Z'),
 
