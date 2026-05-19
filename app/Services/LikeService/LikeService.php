@@ -31,10 +31,22 @@ class LikeService extends CoreRepository
         unset($data['type']);
         unset($data['type_id']);
 
-        /** @var Like $like */
-        $like = $this->model();
+        $searchKeys = [
+            'user_id'      => $data['user_id'],
+            'likable_type' => $data['likable_type'],
+            'likable_id'   => $data['likable_id'],
+        ];
 
-        return $like->updateOrCreate($data);
+        // Toggle: if like already exists, delete it (unlike); otherwise create it
+        $existing = Like::where($searchKeys)->first();
+
+        if ($existing) {
+            $existing->delete();
+            // Return a fresh (unsaved) model to indicate "unliked"
+            return new Like($searchKeys + ['liked' => false]);
+        }
+
+        return Like::create($searchKeys);
     }
 
     /**

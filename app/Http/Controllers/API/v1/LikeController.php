@@ -76,11 +76,18 @@ class LikeController extends Controller
 
         $model = $this->service->store($validated);
 
+        // If the model exists in DB it means we just liked; if not, we just unliked (toggled off)
+        $isLiked = $model->exists;
+
         return $this->successResponse(
             __('errors.' . ResponseError::NO_ERROR, locale: $this->language),
-            LikeResource::make($model->load(['likable']))
+            [
+                'liked' => $isLiked,
+                'data'  => $isLiked ? LikeResource::make($model->load(['likable'])) : null,
+            ]
         );
     }
+
 
     /**
      * Store a newly created resource in storage.

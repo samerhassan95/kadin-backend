@@ -48,6 +48,7 @@ class ProductResource extends JsonResource
             'o_count'       => $this->when($this->o_count, $this->o_count),
             'od_count'      => $this->when($this->od_count, $this->od_count),
             'interval'      => $this->when($this->interval, $this->interval),
+            'is_liked'      => $this->relationLoaded('likes') ? $this->likes->contains('user_id', auth('sanctum')->id()) : false,
             'created_at'    => $this->when($this->created_at, $this->created_at?->format('Y-m-d H:i:s') . 'Z'),
             'updated_at'    => $this->when($this->updated_at, $this->updated_at?->format('Y-m-d H:i:s') . 'Z'),
 
